@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cycle Muscu - Gestion de Programme</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Cycle de Musculation</h1>
+      <p class="tagline">Planifie, lance et suis ta progression</p>
+    </header>
+
+    <main>
+      <section id="profil" class="card">
+        <h2>Profil</h2>
+        <form id="profil-form" class="form-grid">
+          <label for="profil-nom">Ton prénom</label>
+          <div class="form-row">
+            <input type="text" id="profil-nom" name="profil-nom" placeholder="Ex: Alex" required />
+            <button type="submit">Enregistrer</button>
+          </div>
+        </form>
+        <p id="profil-message" class="help-text"></p>
+      </section>
+
+      <section id="exercices" class="card">
+        <div class="card-header">
+          <h2>Bibliothèque d'exercices</h2>
+          <button id="toggle-exercice-form" class="secondary">Nouvel exercice</button>
+        </div>
+        <form id="exercice-form" class="form-grid hidden">
+          <label for="exercice-nom">Nom</label>
+          <input type="text" id="exercice-nom" name="exercice-nom" placeholder="Développé Couché" required />
+
+          <label for="exercice-muscle">Muscles ciblés</label>
+          <input type="text" id="exercice-muscle" name="exercice-muscle" placeholder="Pectoraux / Triceps" required />
+
+          <div class="form-actions">
+            <button type="submit">Ajouter</button>
+            <button type="button" id="cancel-exercice" class="secondary">Annuler</button>
+          </div>
+        </form>
+        <ul id="exercice-liste" class="item-list"></ul>
+      </section>
+
+      <section id="programmes" class="card">
+        <div class="card-header">
+          <h2>Programmes</h2>
+          <button id="toggle-programme-form" class="secondary">Nouveau programme</button>
+        </div>
+        <form id="programme-form" class="form-grid hidden">
+          <label for="programme-nom">Nom du programme</label>
+          <input type="text" id="programme-nom" name="programme-nom" placeholder="Cycle Force" required />
+
+          <div class="form-actions">
+            <button type="submit">Créer</button>
+            <button type="button" id="cancel-programme" class="secondary">Annuler</button>
+          </div>
+        </form>
+        <div id="programme-liste" class="programme-list"></div>
+      </section>
+
+      <section id="seance" class="card">
+        <h2>Mode séance</h2>
+        <p class="help-text">Choisis une séance pour la lancer et enregistrer tes performances.</p>
+        <div id="seance-selecteur" class="form-grid"></div>
+        <div id="seance-en-cours" class="seance-details hidden"></div>
+      </section>
+
+      <section id="historique" class="card">
+        <h2>Historique &amp; progression</h2>
+        <p class="help-text">Les séances enregistrées apparaîtront ici avec l'estimation de ton 1RM.</p>
+        <ul id="historique-liste" class="item-list"></ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <small>Les données sont sauvegardées uniquement sur cet appareil.</small>
+    </footer>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
