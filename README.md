@@ -116,3 +116,34 @@ Choisir les technologies (Simple HTML/CSS/JS, ou un framework léger comme Vue.j
 Maquetter les écrans principaux (Accueil, Gestion de programme, Lancement de séance, Historique).
 
 Commencer le développement du prototype.
+
+---
+
+## Analyse du cahier des charges
+
+- **Public cible** : un élève unique. L'application doit donc fonctionner hors-ligne avec une expérience ultra-simple et aucune notion de compte.
+- **Bloc fonctionnels principaux** :
+  1. Gestion d'un profil minimaliste (nom affiché dans l'interface).
+  2. Bibliothèque d'exercices (pré-remplie + personnalisable).
+  3. Construction de programmes composés de séances contenant des exercices et leurs objectifs.
+  4. Mode "Séance" pour saisir rapidement les performances et calculer automatiquement l'e1RM.
+  5. Historique local des séances pour visualiser sa progression.
+- **Contraintes techniques** : stockage exclusivement dans `localStorage`, fonctionnement mobile-first et option d'import/export ultérieure.
+
+## Prototype initial (Version 0.1)
+
+Une première version statique en HTML/CSS/JS pur est incluse dans ce dépôt (`index.html`, `styles.css`, `app.js`). Elle met en place :
+
+- Le squelette d'interface mobile-first avec sections dédiées au profil, à la bibliothèque d'exercices, aux programmes, au mode séance et à l'historique.
+- Un gestionnaire de données localStorage respectant la structure décrite ci-dessus (profil, exercices, programmes, historique).
+- Une bibliothèque d'exercices de base modifiable (ajout/suppression).
+- La création de programmes et de séances, avec ajout d'exercices issus de la bibliothèque et définition des objectifs/repos.
+- Un mode séance permettant de sélectionner une séance, de renseigner jusqu'à trois séries par exercice et de calculer automatiquement le 1RM estimé via la formule de Brzycki.
+- L'enregistrement de l'historique des séances et l'affichage du meilleur e1RM par exercice.
+
+### Prochaines pistes
+
+- Améliorer l'ergonomie du mode séance (ajout dynamique du nombre de séries, minuteur de repos, validation progressive).
+- Ajouter des statistiques visuelles (graphique d'évolution du 1RM ou des charges).
+- Proposer l'export/import des données au format JSON.
+- Mettre en place des tests unitaires autour du stockage et des calculs (e1RM).
