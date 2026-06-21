@@ -53,9 +53,14 @@ function renderAccueil() {
       empty.textContent = 'Aucun type de record défini.';
       card.appendChild(empty);
     } else {
-      types.forEach((type) => {
-        card.appendChild(createRecordRow(type));
-      });
+      const visuel = createVisuelActivite(activite, types);
+      if (visuel) {
+        card.appendChild(visuel);
+      } else {
+        types.forEach((type) => {
+          card.appendChild(createRecordRow(type));
+        });
+      }
     }
 
     grid.appendChild(card);
@@ -128,6 +133,169 @@ function createRecordRow(type) {
   value.textContent = record ? `${store.getValeurAffichee(record, type)} ${type.unite}` : 'Pas encore de résultat';
   row.append(label, value);
   return row;
+}
+
+// Visuels personnalisés par activité --------------------------------------------
+
+function createVisuelActivite(activite, types) {
+  switch (activite.visuel) {
+    case 'mont-blanc':
+      return createMontBlancCard(activite, types);
+    case 'badminton':
+      return createBadmintonCard(activite, types);
+    case 'laser-run':
+      return createLaserRunCard(activite, types);
+    case 'disco':
+      return createDiscoCard(activite, types);
+    case 'golf':
+      return createGolfCard(activite, types);
+    default:
+      return null;
+  }
+}
+
+function createMontBlancCard(activite, types) {
+  const type = types.find((t) => t.mode === 'cumul');
+  if (!type) return null;
+  const total = store.getTotalCumule(type.id);
+  const objectif = type.objectif || 1;
+  const pct = Math.min(100, Math.round((total / objectif) * 100));
+  const fillHeight = (130 * pct) / 100;
+  const fillY = 150 - fillHeight;
+  const uid = activite.id;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'visual-card visual-montblanc';
+  wrap.innerHTML = `
+    <svg viewBox="0 0 200 150" class="montblanc-svg" aria-hidden="true">
+      <defs>
+        <clipPath id="clip-${uid}">
+          <path d="M0,150 L38,64 L60,92 L92,28 L118,84 L146,52 L200,150 Z" />
+        </clipPath>
+        <linearGradient id="grad-${uid}" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#0066ff" />
+          <stop offset="100%" stop-color="#93c5fd" />
+        </linearGradient>
+      </defs>
+      <path d="M0,150 L38,64 L60,92 L92,28 L118,84 L146,52 L200,150 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1" />
+      <g clip-path="url(#clip-${uid})">
+        <rect x="0" y="${fillY}" width="200" height="${fillHeight}" fill="url(#grad-${uid})" class="montblanc-fill" />
+      </g>
+      <path d="M92,28 L100,40 L84,40 Z" fill="#fff" />
+      <path d="M146,52 L154,62 L138,62 Z" fill="#fff" />
+    </svg>
+    <p class="visual-stats">🏔️ ${total} / ${objectif} m <span class="visual-pct">(${pct}%)</span></p>
+  `;
+  return wrap;
+}
+
+function createBadmintonCard(activite, types) {
+  const type = types.find((t) => t.mode === 'cumul');
+  if (!type) return null;
+  const total = store.getTotalCumule(type.id);
+  const objectif = type.objectif || 1;
+  const pct = Math.min(100, Math.round((total / objectif) * 100));
+  const fillHeight = (90 * pct) / 100;
+  const fillY = 100 - fillHeight;
+  const uid = activite.id;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'visual-card visual-badminton';
+  wrap.innerHTML = `
+    <svg viewBox="0 0 200 110" class="badminton-svg" aria-hidden="true">
+      <defs>
+        <clipPath id="clip-${uid}"><rect x="10" y="10" width="180" height="90" /></clipPath>
+      </defs>
+      <rect x="10" y="10" width="180" height="90" fill="#15803d" stroke="#fff" stroke-width="2" />
+      <line x1="100" y1="10" x2="100" y2="100" stroke="#fff" stroke-width="2" stroke-dasharray="4 3" />
+      <line x1="100" y1="40" x2="100" y2="70" stroke="#1d1d1d" stroke-width="4" />
+      <g clip-path="url(#clip-${uid})">
+        <rect x="10" y="${fillY}" width="180" height="${fillHeight}" fill="rgba(255,255,255,0.35)" class="badminton-fill" />
+      </g>
+      <rect x="10" y="10" width="180" height="90" fill="none" stroke="#fff" stroke-width="2" />
+    </svg>
+    <p class="visual-stats">🏸 ${total} / ${objectif} matchs <span class="visual-pct">(${pct}%)</span></p>
+  `;
+  return wrap;
+}
+
+function createLaserRunCard(activite, types) {
+  const recordTypes = types.filter((t) => t.mode === 'record');
+  const tempsType = recordTypes.find((t) => t.unite === 'minutes');
+  const distanceType = recordTypes.find((t) => t.unite !== 'minutes');
+  if (!tempsType && !distanceType) return null;
+  const uid = activite.id;
+  const recordTemps = tempsType ? store.getRecordActuel(tempsType.id) : null;
+  const recordDistance = distanceType ? store.getRecordActuel(distanceType.id) : null;
+  const valeurTemps = recordTemps ? store.getValeurAffichee(recordTemps, tempsType) : null;
+  const valeurDistance = recordDistance ? store.getValeurAffichee(recordDistance, distanceType) : null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'visual-card visual-laserrun';
+  wrap.innerHTML = `
+    <svg viewBox="0 0 200 140" class="laserrun-svg" aria-hidden="true">
+      <path id="track-${uid}" d="M50,30 H150 A40,40 0 0 1 150,110 H50 A40,40 0 0 1 50,30 Z" fill="none" stroke="#94a3b8" stroke-width="14" stroke-linecap="round" />
+      <circle r="7" fill="#0066ff">
+        <animateMotion dur="3.5s" repeatCount="indefinite">
+          <mpath href="#track-${uid}" />
+        </animateMotion>
+      </circle>
+      <text font-size="16" text-anchor="middle">🏃<animateMotion dur="3.5s" repeatCount="indefinite"><mpath href="#track-${uid}" /></animateMotion></text>
+      <circle cx="100" cy="70" r="38" fill="#1d1d1d" />
+      <circle cx="100" cy="70" r="38" fill="none" stroke="#0066ff" stroke-width="2" class="chrono-ring" />
+      <text x="100" y="68" text-anchor="middle" class="chrono-value">${valeurTemps ?? '–'}</text>
+      <text x="100" y="84" text-anchor="middle" class="chrono-unit">min</text>
+    </svg>
+    <p class="visual-stats">📏 Distance record : ${valeurDistance ?? '–'} m</p>
+  `;
+  return wrap;
+}
+
+function createDiscoCard(activite, types) {
+  const type = types.find((t) => t.mode === 'record');
+  if (!type) return null;
+  const record = store.getRecordActuel(type.id);
+  const valeur = record ? store.getValeurAffichee(record, type) : null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'visual-card visual-disco';
+  wrap.innerHTML = `
+    <div class="disco-stage">
+      <div class="disco-beam beam-1"></div>
+      <div class="disco-beam beam-2"></div>
+      <div class="disco-beam beam-3"></div>
+      <div class="disco-ball"></div>
+    </div>
+    <p class="visual-stats">💃 ${valeur ?? '–'} min sans s'arrêter</p>
+  `;
+  return wrap;
+}
+
+function createGolfCard(activite, types) {
+  const type = types.find((t) => t.mode === 'record');
+  if (!type) return null;
+  const record = store.getRecordActuel(type.id);
+  const valeur = record ? store.getValeurAffichee(record, type) : null;
+  const uid = activite.id;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'visual-card visual-golf';
+  wrap.innerHTML = `
+    <svg viewBox="0 0 200 120" class="golf-svg" aria-hidden="true">
+      <ellipse cx="100" cy="92" rx="92" ry="24" fill="#22c55e" />
+      <path id="ballpath-${uid}" d="M28,98 Q100,55 158,86" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 4" opacity="0.6" />
+      <circle cx="160" cy="86" r="3" fill="#14532d" />
+      <line x1="160" y1="86" x2="160" y2="42" stroke="#78350f" stroke-width="2" />
+      <path d="M160,42 L182,48 L160,54 Z" fill="#ef4444" />
+      <circle r="4" fill="#fdfdfd" stroke="#1d1d1d" stroke-width="1">
+        <animateMotion dur="2.8s" repeatCount="indefinite">
+          <mpath href="#ballpath-${uid}" />
+        </animateMotion>
+      </circle>
+    </svg>
+    <p class="visual-stats">🏌️ ${valeur ?? '–'} balles frappées</p>
+  `;
+  return wrap;
 }
 
 // Contribuer -------------------------------------------------------------------

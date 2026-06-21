@@ -3,11 +3,11 @@ const ADMIN_SESSION_KEY = 'nuitDuSportAdminUnlocked';
 
 const DEFAULT_DATA = {
   activites: [
-    { id: 'act-escalade', nom: 'Escalade', description: 'Chaque voie montée = 10 m. Objectif collectif : atteindre la hauteur du Mont Blanc !' },
-    { id: 'act-raquette', nom: 'Sports de raquette', description: "Objectif collectif : jouer autant de matchs qu'à Roland Garros !" },
-    { id: 'act-laserrun', nom: 'Laser Run', description: 'Course continue : qui tiendra le plus longtemps et parcourra la plus grande distance ?' },
-    { id: 'act-danse', nom: 'Danse', description: "Qui dansera le plus longtemps sans s'arrêter ?" },
-    { id: 'act-golf', nom: 'Golf', description: 'Qui frappera le plus de balles ?' },
+    { id: 'act-escalade', nom: 'Escalade', description: 'Chaque voie montée = 10 m. Objectif collectif : atteindre la hauteur du Mont Blanc !', visuel: 'mont-blanc' },
+    { id: 'act-raquette', nom: 'Sports de raquette', description: "Objectif collectif : jouer autant de matchs qu'à Roland Garros !", visuel: 'badminton' },
+    { id: 'act-laserrun', nom: 'Laser Run', description: 'Course continue : qui tiendra le plus longtemps et parcourra la plus grande distance ?', visuel: 'laser-run' },
+    { id: 'act-danse', nom: 'Danse', description: "Qui dansera le plus longtemps sans s'arrêter ?", visuel: 'disco' },
+    { id: 'act-golf', nom: 'Golf', description: 'Qui frappera le plus de balles ?', visuel: 'golf' },
   ],
   typesRecord: [
     {
