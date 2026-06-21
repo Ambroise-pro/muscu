@@ -261,6 +261,81 @@ textarea:focus {
   width: 100%;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  width: min(960px, 100%);
+  margin: 1.25rem auto 0;
+  padding: 0 1rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: transparent;
+}
+
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.record-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fdfdfd;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.record-card h3 {
+  margin: 0;
+}
+
+.record-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.5rem;
+}
+
+.record-label {
+  font-weight: 600;
+}
+
+.record-value {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.badge-record {
+  display: inline-flex;
+  margin-top: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #fff3cd;
+  color: #8a6500;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.admin-bar {
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 720px) {
   main {
     padding: 1rem;
