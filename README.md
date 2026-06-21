@@ -7,7 +7,25 @@ Application web pour organiser une **Nuit du Sport** au sein de l'association sp
 - **Accueil** : tableau des records actuels par activité + flux chronologique de toutes les contributions de la soirée (avec mise en avant des nouveaux records).
 - **Contribuer** : n'importe qui (élève, parent) peut ajouter son résultat sur une activité / un type de record, sans indiquer son nom.
 - **Planning** : liste des activités de l'association sportive prévues sur l'année (lecture publique).
-- **Admin** (protégé par mot de passe) : création/suppression des activités, des types de record associés (unité, sens du record : le plus haut ou le plus bas gagne), et gestion du planning.
+- **Admin** (protégé par mot de passe) : création/suppression des activités et de leurs types de record, et gestion du planning. Deux modes de record :
+  - **Record** : la meilleure valeur saisie gagne (le plus haut ou le plus bas gagne, au choix).
+  - **Cumul** : les contributions s'additionnent vers un objectif collectif sur la soirée (avec barre de progression).
+  - Un multiplicateur permet de convertir l'unité saisie en unité affichée (ex : 1 voie = 10 m, 1 tour = distance définie en admin).
+
+### Activités préconfigurées
+
+L'application est livrée avec 5 activités déjà créées (modifiables/supprimables depuis l'Admin) :
+
+| Activité | Type de record | Mode |
+|---|---|---|
+| Escalade | Voies montées vers le Mont Blanc (1 voie = 10 m, objectif 4810 m) | Cumul |
+| Sports de raquette | Matchs joués (objectif 127, comme à Roland Garros) | Cumul |
+| Laser Run | Temps de course sans interruption | Record |
+| Laser Run | Distance parcourue (1 tour = 400 m par défaut, à ajuster en Admin) | Record |
+| Danse | Temps dansé sans interruption | Record |
+| Golf | Balles frappées | Record |
+
+Le nombre de matchs à Roland Garros et la distance par tour du Laser Run sont des valeurs par défaut éditables dans l'Admin si tu veux les ajuster.
 
 ## Mot de passe administrateur
 
