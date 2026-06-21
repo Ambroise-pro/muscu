@@ -1,149 +1,41 @@
-Projet : Application de Gestion de Cycle de Musculation (Lycée)
+# Nuit du Sport
 
-Version 2.0 - Focus Local (Élève Uniquement)
+Application web pour organiser une **Nuit du Sport** au sein de l'association sportive du lycée : suivi des records battus en direct pendant la soirée, et planning des activités de l'année.
 
-1. Objectif Principal
+## Fonctionnalités
 
-Créer une application web simple et accessible (mobile-first) pour permettre aux élèves de lycée de créer, gérer et suivre leur propre cycle de musculation. L'application fonctionne de manière autonome (hors-ligne) et sauvegarde toutes les données (programmes, performances) dans le cache du navigateur (localStorage).
+- **Accueil** : tableau des records actuels par activité + flux chronologique de toutes les contributions de la soirée (avec mise en avant des nouveaux records).
+- **Contribuer** : n'importe qui (élève, parent) peut ajouter son résultat sur une activité / un type de record, sans indiquer son nom.
+- **Planning** : liste des activités de l'association sportive prévues sur l'année (lecture publique).
+- **Admin** (protégé par mot de passe) : création/suppression des activités, des types de record associés (unité, sens du record : le plus haut ou le plus bas gagne), et gestion du planning.
 
-2. Public Cible
+## Mot de passe administrateur
 
-Élèves de Lycée : Utilisateur unique. A besoin d'un outil simple pour définir son programme, guider ses séances, et enregistrer ses performances pour voir sa progression.
+Aucun mot de passe n'est codé en dur : la première personne qui ouvre l'onglet **Admin** et saisit un mot de passe le définit pour cet appareil. Il est ensuite demandé à chaque nouvelle session. Il peut être changé depuis l'espace admin une fois connecté.
 
-3. Fonctionnalités Clés
+## ⚠️ Stockage des données (limitation actuelle)
 
-L'application n'a plus qu'un seul "profil" utilisateur.
+Pour cette première version, **toutes les données sont stockées dans le `localStorage` du navigateur**, comme demandé pour aller vite. Cela signifie :
 
-[ ] Gestion de Profil : Saisie simple du nom de l'utilisateur pour personnaliser l'accueil.
+- les données ne sont **pas partagées entre appareils** : si chaque élève utilise son propre téléphone, ses contributions ne seront visibles que sur son téléphone, pas sur celui des autres ni sur l'écran d'accueil affiché à la soirée ;
+- pour que tout le monde voie les mêmes records en direct le soir de l'événement, il faut utiliser **un seul appareil partagé** (tablette/PC à l'entrée, ou téléphone unique relié à un vidéoprojecteur) sur lequel toutes les contributions sont saisies ;
+- une base de données partagée (ex. Postgres) sera ajoutée dans une prochaine itération pour permettre à chacun de contribuer depuis son propre appareil avec mise à jour en temps réel pour tout le monde.
 
-[ ] Bibliothèque d'Exercices :
+## Déploiement sur Vercel
 
-[ ] Consulter une bibliothèque d'exercices pré-remplie (avec description, muscles ciblés).
+Le site est 100% statique (HTML/CSS/JS sans build), donc le déploiement sur Vercel ne nécessite aucune configuration :
 
-[ ] Possibilité d'ajouter/modifier/supprimer ses propres exercices.
+1. Importer ce dépôt GitHub dans Vercel (New Project > sélectionner le repo).
+2. Laisser le framework preset sur "Other" et les commandes de build vides.
+3. Déployer.
 
-[ ] Création de Programme (Cycle) :
+Chaque push sur la branche connectée à Vercel déclenche un nouveau déploiement automatique.
 
-[ ] Créer un ou plusieurs programmes (ex: "Cycle Force", "Cycle Hypertrophie").
+## Structure du projet
 
-[ ] Pour chaque programme, créer plusieurs séances (ex: "Séance 1 - Pectoraux/Triceps").
-
-[ ] Ajouter des exercices de la bibliothèque à chaque séance (définir séries, répétitions, temps de repos).
-
-[ ] Mode "Séance" :
-
-[ ] Lancer une séance de son programme.
-
-[ ] Affichage clair de l'exercice en cours, de l'objectif (séries/reps) et du temps de repos.
-
-[ ] Saisie simple des performances (charge, répétitions) pour chaque série effectuée.
-
-[ ] Historique et Progression :
-
-[ ] Consulter l'historique de toutes les séances réalisées.
-
-[ ] Calcul automatique du 1RM (One Rep Max) estimé pour les exercices pertinents après la saisie d'une performance (selon la formule de Brzycki : Poids / (1.0278 - (0.0278 * Répétitions))).
-
-[ ] Visualiser la progression sur un exercice spécifique (graphique d'évolution de la charge, des répétitions, ou du 1RM estimé).
-
-[ ] Gestion des Données (Local Storage) :
-
-[ ] Sauvegarde automatique de toutes les données dans le navigateur.
-
-[ ] (Optionnel) Fonction pour exporter les données (ex: en fichier JSON) pour sauvegarde.
-
-[ ] (Optionnel) Fonction pour importer un fichier de données (pour restaurer ou transférer).
-
-4. Structure des Données (Stockage Local)
-
-Les données seront stockées dans localStorage sous une clé principale (ex: appMuscuData). Voici une proposition de structure pour l'objet JSON :
-
-{
-  "profil": {
-    "nom": "Jean Élève"
-  },
-  "exercices": [
-    { "id": "uuid-1", "nom": "Développé Couché", "muscle_cible": "Pectoraux" },
-    { "id": "uuid-2", "nom": "Squat", "muscle_cible": "Jambes" }
-    // ... plus d'exercices (pré-remplis ou ajoutés par l'élève)
-  ],
-  "programmes": [
-    {
-      "id": "prog-1",
-      "nom": "Mon Cycle Force (3 jours)",
-      "seances": [
-        {
-          "id": "seance-1",
-          "nom": "Haut du Corps A",
-          "exercices": [
-            { "exercice_id": "uuid-1", "objectif": "3 séries de 5 reps", "repos_sec": 120 },
-            { "exercice_id": "uuid-...", "objectif": "3 séries de 8-10 reps", "repos_sec": 90 }
-          ]
-        },
-        { "id": "seance-2", "nom": "Bas du Corps" /* ... */ }
-      ]
-    }
-  ],
-  "historique": [
-    {
-      "id": "log-1",
-      "date": "2025-10-25T10:30:00Z",
-      "seance_nom": "Haut du Corps A",
-      "performances": [
-        {
-          "exercice_id": "uuid-1",
-          "exercice_nom": "Développé Couché",
-          "series": [
-            { "serie": 1, "poids": 60, "reps": 5, "e1rm": 67.5 }, // e1rm = 1RM Estimé
-            { "serie": 2, "poids": 60, "reps": 5, "e1rm": 67.5 },
-            { "serie": 3, "poids": 60, "reps": 4, "e1rm": 65.5 }
-          ],
-          "meilleur_e1rm_seance": 67.5
-        }
-        // ... performances des autres exercices
-      ]
-    }
-  ]
-}
-
-
-5. Prochaines Étapes
-
-Valider cette nouvelle structure simplifiée.
-
-Choisir les technologies (Simple HTML/CSS/JS, ou un framework léger comme Vue.js ou Svelte, ou React/Angular si besoin).
-
-Maquetter les écrans principaux (Accueil, Gestion de programme, Lancement de séance, Historique).
-
-Commencer le développement du prototype.
-
----
-
-## Analyse du cahier des charges
-
-- **Public cible** : un élève unique. L'application doit donc fonctionner hors-ligne avec une expérience ultra-simple et aucune notion de compte.
-- **Bloc fonctionnels principaux** :
-  1. Gestion d'un profil minimaliste (nom affiché dans l'interface).
-  2. Bibliothèque d'exercices (pré-remplie + personnalisable).
-  3. Construction de programmes composés de séances contenant des exercices et leurs objectifs.
-  4. Mode "Séance" pour saisir rapidement les performances et calculer automatiquement l'e1RM.
-  5. Historique local des séances pour visualiser sa progression.
-- **Contraintes techniques** : stockage exclusivement dans `localStorage`, fonctionnement mobile-first et option d'import/export ultérieure.
-
-## Prototype initial (Version 0.1)
-
-Une première version statique en HTML/CSS/JS pur est incluse dans ce dépôt (`index.html`, `styles.css`, `app.js`). Elle met en place :
-
-- Le squelette d'interface mobile-first avec sections dédiées au profil, à la bibliothèque d'exercices, aux programmes, au mode séance et à l'historique.
-- Un gestionnaire de données localStorage respectant la structure décrite ci-dessus (profil, exercices, programmes, historique).
-- Une bibliothèque d'exercices de base modifiable (ajout/suppression).
-- La création de programmes et de séances, avec ajout d'exercices issus de la bibliothèque et définition des objectifs/repos.
-- Un mode séance permettant de sélectionner une séance, de renseigner jusqu'à trois séries par exercice et de calculer automatiquement le 1RM estimé via la formule de Brzycki.
-- L'enregistrement de l'historique des séances et l'affichage du meilleur e1RM par exercice.
-
-### Prochaines pistes
-
-- Améliorer l'ergonomie du mode séance (ajout dynamique du nombre de séries, minuteur de repos, validation progressive).
-- Ajouter des statistiques visuelles (graphique d'évolution du 1RM ou des charges).
-- Proposer l'export/import des données au format JSON.
-- Mettre en place des tests unitaires autour du stockage et des calculs (e1RM).
+```
+index.html       Structure des 4 onglets (Accueil, Contribuer, Planning, Admin)
+styles.css       Styles de l'application
+js/store.js      Couche de données (localStorage)
+js/app.js        Logique d'affichage et interactions
+```
