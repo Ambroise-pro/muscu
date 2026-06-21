@@ -54,17 +54,7 @@ function renderAccueil() {
       card.appendChild(empty);
     } else {
       types.forEach((type) => {
-        const record = store.getRecordActuel(type.id);
-        const row = document.createElement('div');
-        row.className = 'record-row';
-        const label = document.createElement('span');
-        label.className = 'record-label';
-        label.textContent = type.nom;
-        const value = document.createElement('span');
-        value.className = 'record-value';
-        value.textContent = record ? `${record.valeur} ${type.unite}` : 'Pas encore de résultat';
-        row.append(label, value);
-        card.appendChild(row);
+        card.appendChild(createRecordRow(type));
       });
     }
 
@@ -87,11 +77,57 @@ function renderAccueil() {
     const meta = document.createElement('div');
     meta.className = 'item-meta';
     const titre = activite && type ? `${activite.nom} · ${type.nom}` : 'Activité supprimée';
-    const badge = contribution.nouveauRecord ? '<span class="badge badge-record">🏆 Nouveau record !</span>' : '';
-    meta.innerHTML = `<strong>${titre}</strong><span>${contribution.valeur} ${type ? type.unite : ''} · ${dateFormatter.format(new Date(contribution.date))}</span>${badge}`;
+    const valeurAffichee = type ? store.getValeurAffichee(contribution, type) : contribution.valeur;
+    const detailSaisie = type && type.multiplicateur !== 1
+      ? `${contribution.valeur} ${type.uniteSaisie} · `
+      : '';
+    let badge = '';
+    if (contribution.nouveauRecord) {
+      badge = '<span class="badge badge-record">🏆 Nouveau record !</span>';
+    } else if (contribution.objectifAtteint) {
+      badge = '<span class="badge badge-record">🎉 Objectif atteint !</span>';
+    }
+    meta.innerHTML = `<strong>${titre}</strong><span>${detailSaisie}${valeurAffichee} ${type ? type.unite : ''} · ${dateFormatter.format(new Date(contribution.date))}</span>${badge}`;
     item.appendChild(meta);
     flux.appendChild(item);
   });
+}
+
+function createRecordRow(type) {
+  const row = document.createElement('div');
+  row.className = 'record-row';
+  const label = document.createElement('span');
+  label.className = 'record-label';
+  label.textContent = type.nom;
+  const value = document.createElement('span');
+  value.className = 'record-value';
+
+  if (type.mode === 'cumul') {
+    const total = store.getTotalCumule(type.id);
+    const objectif = type.objectif;
+    value.textContent = objectif ? `${total} / ${objectif} ${type.unite}` : `${total} ${type.unite}`;
+    row.append(label, value);
+
+    if (objectif) {
+      const progressWrap = document.createElement('div');
+      progressWrap.className = 'progress-bar';
+      const progressFill = document.createElement('div');
+      progressFill.className = 'progress-fill';
+      const pourcentage = Math.min(100, Math.round((total / objectif) * 100));
+      progressFill.style.width = `${pourcentage}%`;
+      progressWrap.appendChild(progressFill);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'record-row-cumul';
+      wrapper.append(row, progressWrap);
+      return wrapper;
+    }
+    return row;
+  }
+
+  const record = store.getRecordActuel(type.id);
+  value.textContent = record ? `${store.getValeurAffichee(record, type)} ${type.unite}` : 'Pas encore de résultat';
+  row.append(label, value);
+  return row;
 }
 
 // Contribuer -------------------------------------------------------------------
@@ -129,14 +165,35 @@ function updateTypeOptions() {
   typeSelect.innerHTML = '';
   if (!types.length) {
     typeSelect.innerHTML = '<option value="">Aucun type de record</option>';
+    updateContributionHint();
     return;
   }
   types.forEach((type) => {
     const option = document.createElement('option');
     option.value = type.id;
-    option.textContent = `${type.nom} (${type.unite})`;
+    option.textContent = type.nom;
     typeSelect.appendChild(option);
   });
+  updateContributionHint();
+}
+
+function updateContributionHint() {
+  const typeSelect = document.querySelector('#contribution-type');
+  const hint = document.querySelector('#contribution-hint');
+  const valeurLabel = document.querySelector('#contribution-valeur-label');
+  if (!typeSelect || !hint || !valeurLabel) return;
+
+  const type = store.getTypeRecord(typeSelect.value);
+  if (!type) {
+    hint.textContent = '';
+    valeurLabel.textContent = 'Ton résultat';
+    return;
+  }
+
+  valeurLabel.textContent = `Ton résultat (en ${type.uniteSaisie})`;
+  hint.textContent = type.multiplicateur !== 1
+    ? `1 ${type.uniteSaisie} = ${type.multiplicateur} ${type.unite}`
+    : '';
 }
 
 function handleContributionSubmit(event) {
@@ -152,9 +209,13 @@ function handleContributionSubmit(event) {
   }
 
   const contribution = store.addContribution({ typeRecordId, valeur });
-  message.textContent = contribution?.nouveauRecord
-    ? '🏆 Bravo, nouveau record !'
-    : 'Contribution enregistrée, merci !';
+  if (contribution?.nouveauRecord) {
+    message.textContent = '🏆 Bravo, nouveau record !';
+  } else if (contribution?.objectifAtteint) {
+    message.textContent = '🎉 Objectif atteint grâce à toi !';
+  } else {
+    message.textContent = 'Contribution enregistrée, merci !';
+  }
   event.target.reset();
   renderAccueil();
   setTimeout(() => {
@@ -350,8 +411,13 @@ function createActiviteBlock(activite) {
       const li = document.createElement('li');
       const meta = document.createElement('div');
       meta.className = 'item-meta';
-      const sensLabel = type.sens === 'plus_bas' ? 'le plus bas gagne' : 'le plus haut gagne';
-      meta.innerHTML = `<strong>${type.nom}</strong><span>Unité : ${type.unite} · ${sensLabel}</span>`;
+      const conversion = type.multiplicateur !== 1
+        ? ` · 1 ${type.uniteSaisie} = ${type.multiplicateur} ${type.unite}`
+        : '';
+      const detail = type.mode === 'cumul'
+        ? `Cumul · objectif : ${type.objectif ?? '—'} ${type.unite}${conversion}`
+        : `Record · ${type.sens === 'plus_bas' ? 'le plus bas gagne' : 'le plus haut gagne'}${conversion}`;
+      meta.innerHTML = `<strong>${type.nom}</strong><span>${detail}</span>`;
 
       const itemActions = document.createElement('div');
       itemActions.className = 'item-actions';
@@ -381,12 +447,39 @@ function createActiviteBlock(activite) {
   nomInput.placeholder = 'Nombre de répétitions';
   nomInput.required = true;
 
+  const modeLabel = document.createElement('label');
+  modeLabel.textContent = 'Mode';
+  const modeSelect = document.createElement('select');
+  const optRecord = document.createElement('option');
+  optRecord.value = 'record';
+  optRecord.textContent = 'Record (la meilleure valeur gagne)';
+  const optCumul = document.createElement('option');
+  optCumul.value = 'cumul';
+  optCumul.textContent = 'Cumul (objectif collectif sur la soirée)';
+  modeSelect.append(optRecord, optCumul);
+
+  const uniteSaisieLabel = document.createElement('label');
+  uniteSaisieLabel.textContent = 'Unité saisie par le contributeur';
+  const uniteSaisieInput = document.createElement('input');
+  uniteSaisieInput.type = 'text';
+  uniteSaisieInput.placeholder = 'voies, tours, matchs, minutes...';
+  uniteSaisieInput.required = true;
+
   const uniteLabel = document.createElement('label');
-  uniteLabel.textContent = 'Unité';
+  uniteLabel.textContent = 'Unité affichée du résultat';
   const uniteInput = document.createElement('input');
   uniteInput.type = 'text';
   uniteInput.placeholder = 'répétitions, secondes, mètres...';
   uniteInput.required = true;
+
+  const multiplicateurLabel = document.createElement('label');
+  multiplicateurLabel.textContent = 'Valeur réelle par unité saisie (ex : 10 m par voie)';
+  const multiplicateurInput = document.createElement('input');
+  multiplicateurInput.type = 'number';
+  multiplicateurInput.min = '0';
+  multiplicateurInput.step = 'any';
+  multiplicateurInput.value = '1';
+  multiplicateurInput.required = true;
 
   const sensLabel = document.createElement('label');
   sensLabel.textContent = 'Qui gagne ?';
@@ -399,6 +492,26 @@ function createActiviteBlock(activite) {
   optBas.textContent = 'Le plus bas gagne';
   sensSelect.append(optHaut, optBas);
 
+  const objectifLabel = document.createElement('label');
+  objectifLabel.textContent = 'Objectif collectif à atteindre';
+  const objectifInput = document.createElement('input');
+  objectifInput.type = 'number';
+  objectifInput.min = '0';
+  objectifInput.step = 'any';
+  objectifInput.placeholder = '4810';
+
+  const sensField = document.createElement('div');
+  sensField.append(sensLabel, sensSelect);
+  const objectifField = document.createElement('div');
+  objectifField.append(objectifLabel, objectifInput);
+  objectifField.classList.add('hidden');
+
+  modeSelect.addEventListener('change', () => {
+    const estCumul = modeSelect.value === 'cumul';
+    objectifField.classList.toggle('hidden', !estCumul);
+    sensField.classList.toggle('hidden', estCumul);
+  });
+
   const formActions = document.createElement('div');
   formActions.className = 'form-actions';
   const submitBtn = document.createElement('button');
@@ -410,22 +523,44 @@ function createActiviteBlock(activite) {
   cancelBtn.textContent = 'Annuler';
   cancelBtn.addEventListener('click', () => {
     form.reset();
+    objectifField.classList.add('hidden');
+    sensField.classList.remove('hidden');
     form.classList.add('hidden');
   });
   formActions.append(submitBtn, cancelBtn);
 
-  form.append(nomLabel, nomInput, uniteLabel, uniteInput, sensLabel, sensSelect, formActions);
+  form.append(
+    nomLabel,
+    nomInput,
+    modeLabel,
+    modeSelect,
+    uniteSaisieLabel,
+    uniteSaisieInput,
+    uniteLabel,
+    uniteInput,
+    multiplicateurLabel,
+    multiplicateurInput,
+    sensField,
+    objectifField,
+    formActions,
+  );
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!nomInput.value.trim() || !uniteInput.value.trim()) return;
+    if (!nomInput.value.trim() || !uniteSaisieInput.value.trim() || !uniteInput.value.trim()) return;
     store.addTypeRecord({
       activiteId: activite.id,
       nom: nomInput.value.trim(),
+      mode: modeSelect.value,
+      uniteSaisie: uniteSaisieInput.value.trim(),
       unite: uniteInput.value.trim(),
+      multiplicateur: multiplicateurInput.value,
       sens: sensSelect.value,
+      objectif: objectifInput.value,
     });
     form.reset();
+    objectifField.classList.add('hidden');
+    sensField.classList.remove('hidden');
     form.classList.add('hidden');
     renderActivites();
     renderAll();
@@ -468,6 +603,7 @@ function setupInteractions() {
   setupTabs();
 
   document.querySelector('#contribution-activite')?.addEventListener('change', updateTypeOptions);
+  document.querySelector('#contribution-type')?.addEventListener('change', updateContributionHint);
   document.querySelector('#contribution-form')?.addEventListener('submit', handleContributionSubmit);
 
   document.querySelector('#toggle-planning-form')?.addEventListener('click', () => toggleVisibility('#planning-form'));

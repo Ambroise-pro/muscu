@@ -336,6 +336,32 @@ textarea:focus {
   margin-bottom: 1rem;
 }
 
+.record-row-cumul {
+  display: grid;
+  gap: 0.35rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.5rem;
+}
+
+.record-row-cumul .record-row {
+  border-top: none;
+  padding-top: 0;
+}
+
+.progress-bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
 @media (max-width: 720px) {
   main {
     padding: 1rem;

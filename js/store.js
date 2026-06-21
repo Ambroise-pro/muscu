@@ -2,8 +2,81 @@ const STORAGE_KEY = 'nuitDuSportData';
 const ADMIN_SESSION_KEY = 'nuitDuSportAdminUnlocked';
 
 const DEFAULT_DATA = {
-  activites: [],
-  typesRecord: [],
+  activites: [
+    { id: 'act-escalade', nom: 'Escalade', description: 'Chaque voie montée = 10 m. Objectif collectif : atteindre la hauteur du Mont Blanc !' },
+    { id: 'act-raquette', nom: 'Sports de raquette', description: "Objectif collectif : jouer autant de matchs qu'à Roland Garros !" },
+    { id: 'act-laserrun', nom: 'Laser Run', description: 'Course continue : qui tiendra le plus longtemps et parcourra la plus grande distance ?' },
+    { id: 'act-danse', nom: 'Danse', description: "Qui dansera le plus longtemps sans s'arrêter ?" },
+    { id: 'act-golf', nom: 'Golf', description: 'Qui frappera le plus de balles ?' },
+  ],
+  typesRecord: [
+    {
+      id: 'type-escalade-voies',
+      activiteId: 'act-escalade',
+      nom: 'Voies montées vers le Mont Blanc',
+      mode: 'cumul',
+      uniteSaisie: 'voies',
+      unite: 'm',
+      multiplicateur: 10,
+      objectif: 4810,
+      sens: 'plus_haut',
+    },
+    {
+      id: 'type-raquette-matchs',
+      activiteId: 'act-raquette',
+      nom: 'Matchs joués (objectif Roland Garros)',
+      mode: 'cumul',
+      uniteSaisie: 'matchs',
+      unite: 'matchs',
+      multiplicateur: 1,
+      objectif: 127,
+      sens: 'plus_haut',
+    },
+    {
+      id: 'type-laserrun-temps',
+      activiteId: 'act-laserrun',
+      nom: 'Temps de course sans interruption',
+      mode: 'record',
+      uniteSaisie: 'minutes',
+      unite: 'minutes',
+      multiplicateur: 1,
+      objectif: null,
+      sens: 'plus_haut',
+    },
+    {
+      id: 'type-laserrun-distance',
+      activiteId: 'act-laserrun',
+      nom: 'Distance parcourue',
+      mode: 'record',
+      uniteSaisie: 'tours',
+      unite: 'm',
+      multiplicateur: 400,
+      objectif: null,
+      sens: 'plus_haut',
+    },
+    {
+      id: 'type-danse-temps',
+      activiteId: 'act-danse',
+      nom: 'Temps dansé sans interruption',
+      mode: 'record',
+      uniteSaisie: 'minutes',
+      unite: 'minutes',
+      multiplicateur: 1,
+      objectif: null,
+      sens: 'plus_haut',
+    },
+    {
+      id: 'type-golf-balles',
+      activiteId: 'act-golf',
+      nom: 'Balles frappées',
+      mode: 'record',
+      uniteSaisie: 'balles',
+      unite: 'balles',
+      multiplicateur: 1,
+      objectif: null,
+      sens: 'plus_haut',
+    },
+  ],
   contributions: [],
   planning: [],
   admin: {
@@ -93,13 +166,17 @@ export function getTypeRecord(id) {
   return state.data.typesRecord.find((t) => t.id === id);
 }
 
-export function addTypeRecord({ activiteId, nom, unite, sens }) {
+export function addTypeRecord({ activiteId, nom, mode, uniteSaisie, unite, multiplicateur, sens, objectif }) {
   const typeRecord = {
     id: generateId('type'),
     activiteId,
     nom,
+    mode: mode === 'cumul' ? 'cumul' : 'record',
+    uniteSaisie: uniteSaisie || unite,
     unite,
+    multiplicateur: Number(multiplicateur) > 0 ? Number(multiplicateur) : 1,
     sens: sens === 'plus_bas' ? 'plus_bas' : 'plus_haut',
+    objectif: mode === 'cumul' && Number(objectif) > 0 ? Number(objectif) : null,
   };
   state.data.typesRecord.push(typeRecord);
   save();
@@ -119,6 +196,11 @@ function estMeilleur(valeur, record, sens) {
   return sens === 'plus_bas' ? valeur < record.valeur : valeur > record.valeur;
 }
 
+export function getValeurAffichee(contribution, typeRecord) {
+  const type = typeRecord || getTypeRecord(contribution.typeRecordId);
+  return contribution.valeur * (type?.multiplicateur || 1);
+}
+
 export function getRecordActuel(typeRecordId) {
   const contributions = state.data.contributions.filter((c) => c.typeRecordId === typeRecordId);
   if (!contributions.length) return null;
@@ -130,17 +212,37 @@ export function getRecordActuel(typeRecordId) {
   }, null);
 }
 
+export function getTotalCumule(typeRecordId) {
+  const typeRecord = getTypeRecord(typeRecordId);
+  const multiplicateur = typeRecord?.multiplicateur || 1;
+  return state.data.contributions
+    .filter((c) => c.typeRecordId === typeRecordId)
+    .reduce((total, c) => total + c.valeur * multiplicateur, 0);
+}
+
 export function addContribution({ typeRecordId, valeur }) {
   const typeRecord = getTypeRecord(typeRecordId);
   if (!typeRecord) return null;
-  const recordAvant = getRecordActuel(typeRecordId);
-  const nouveauRecord = estMeilleur(valeur, recordAvant, typeRecord.sens);
+
+  let nouveauRecord = false;
+  let objectifAtteint = false;
+
+  if (typeRecord.mode === 'cumul') {
+    const totalAvant = getTotalCumule(typeRecordId);
+    const totalApres = totalAvant + valeur * typeRecord.multiplicateur;
+    objectifAtteint = Boolean(typeRecord.objectif) && totalAvant < typeRecord.objectif && totalApres >= typeRecord.objectif;
+  } else {
+    const recordAvant = getRecordActuel(typeRecordId);
+    nouveauRecord = estMeilleur(valeur, recordAvant, typeRecord.sens);
+  }
+
   const contribution = {
     id: generateId('contrib'),
     typeRecordId,
     valeur,
     date: new Date().toISOString(),
     nouveauRecord,
+    objectifAtteint,
   };
   state.data.contributions.push(contribution);
   save();
