@@ -29,15 +29,21 @@ Le nombre de matchs à Roland Garros et la distance par tour du Laser Run sont d
 
 ## Mot de passe administrateur
 
-Aucun mot de passe n'est codé en dur : la première personne qui ouvre l'onglet **Admin** et saisit un mot de passe le définit pour cet appareil. Il est ensuite demandé à chaque nouvelle session. Il peut être changé depuis l'espace admin une fois connecté.
+Aucun mot de passe n'est codé en dur : la première personne qui ouvre l'onglet **Admin** et saisit un mot de passe le définit pour tout le monde (il est stocké dans la base partagée). Il est ensuite demandé à chaque nouvelle session sur chaque appareil. Il peut être changé depuis l'espace admin une fois connecté.
 
-## ⚠️ Stockage des données (limitation actuelle)
+## Base de données partagée (Supabase)
 
-Pour cette première version, **toutes les données sont stockées dans le `localStorage` du navigateur**, comme demandé pour aller vite. Cela signifie :
+Les données (activités, types de record, contributions, planning, mot de passe admin) sont stockées dans un projet **Supabase** (Postgres) partagé entre tous les appareils, avec **mise à jour en temps réel** : quand quelqu'un ajoute une contribution, tous les écrans connectés (accueil, écran de projection, téléphones des élèves) se mettent à jour automatiquement sans recharger la page.
 
-- les données ne sont **pas partagées entre appareils** : si chaque élève utilise son propre téléphone, ses contributions ne seront visibles que sur son téléphone, pas sur celui des autres ni sur l'écran d'accueil affiché à la soirée ;
-- pour que tout le monde voie les mêmes records en direct le soir de l'événement, il faut utiliser **un seul appareil partagé** (tablette/PC à l'entrée, ou téléphone unique relié à un vidéoprojecteur) sur lequel toutes les contributions sont saisies ;
-- une base de données partagée (ex. Postgres) sera ajoutée dans une prochaine itération pour permettre à chacun de contribuer depuis son propre appareil avec mise à jour en temps réel pour tout le monde.
+### Mise en place
+
+1. Crée un projet sur [supabase.com](https://supabase.com) (gratuit).
+2. Ouvre **SQL Editor** dans le dashboard du projet, colle le contenu de [`supabase/schema.sql`](supabase/schema.sql) et exécute-le. Cela crée les tables, active la lecture/écriture publique (RLS) et le temps réel, et insère les 5 activités préconfigurées.
+3. Récupère l'**URL du projet** et la **clé publique (anon/publishable)** dans Project Settings > API, et renseigne-les en haut de [`js/store.js`](js/store.js) (`SUPABASE_URL` et `SUPABASE_ANON_KEY`).
+
+### ⚠️ Limitation de sécurité à connaître
+
+Pour rester simple (pas d'authentification Supabase), la base autorise la lecture **et l'écriture** publiques sur toutes les tables : la protection de l'espace Admin par mot de passe est gérée uniquement côté application (interface), pas au niveau de la base. Une personne qui connaît l'URL et la clé Supabase pourrait théoriquement écrire directement dans la base en contournant l'interface. C'est acceptable pour un événement ponctuel entre élèves/parents de confiance, mais à durcir (Supabase Auth + RLS par rôle) si l'app devait être réutilisée dans un contexte plus exposé.
 
 ## Déploiement sur Vercel
 
@@ -52,8 +58,9 @@ Chaque push sur la branche connectée à Vercel déclenche un nouveau déploieme
 ## Structure du projet
 
 ```
-index.html       Structure des 4 onglets (Accueil, Contribuer, Planning, Admin)
-styles.css       Styles de l'application
-js/store.js      Couche de données (localStorage)
-js/app.js        Logique d'affichage et interactions
+index.html         Structure des 4 onglets (Accueil, Contribuer, Planning, Admin)
+styles.css         Styles de l'application
+js/store.js        Couche de données (Supabase) + temps réel
+js/app.js          Logique d'affichage et interactions
+supabase/schema.sql  Schéma SQL à exécuter dans le projet Supabase
 ```
