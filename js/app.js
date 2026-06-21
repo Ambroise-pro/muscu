@@ -364,7 +364,7 @@ function updateContributionHint() {
     : '';
 }
 
-async function handleContributionSubmit(event) {
+function handleContributionSubmit(event) {
   event.preventDefault();
   const formData = new FormData(event.target);
   const typeRecordId = formData.get('type');
@@ -376,21 +376,16 @@ async function handleContributionSubmit(event) {
     return;
   }
 
-  try {
-    const contribution = await store.addContribution({ typeRecordId, valeur });
-    if (contribution?.nouveauRecord) {
-      message.textContent = '🏆 Bravo, nouveau record !';
-    } else if (contribution?.objectifAtteint) {
-      message.textContent = '🎉 Objectif atteint grâce à toi !';
-    } else {
-      message.textContent = 'Contribution enregistrée, merci !';
-    }
-    event.target.reset();
-    renderAccueil();
-  } catch (error) {
-    console.error('Erreur lors de l\'enregistrement de la contribution', error);
-    message.textContent = 'Erreur réseau, ta contribution n\'a pas été enregistrée. Réessaie.';
+  const contribution = store.addContribution({ typeRecordId, valeur });
+  if (contribution?.nouveauRecord) {
+    message.textContent = '🏆 Bravo, nouveau record !';
+  } else if (contribution?.objectifAtteint) {
+    message.textContent = '🎉 Objectif atteint grâce à toi !';
+  } else {
+    message.textContent = 'Contribution enregistrée, merci !';
   }
+  event.target.reset();
+  renderAccueil();
   setTimeout(() => {
     message.textContent = '';
   }, 3000);
@@ -428,8 +423,8 @@ function renderPlanning() {
       deleteBtn.type = 'button';
       deleteBtn.className = 'secondary';
       deleteBtn.textContent = 'Supprimer';
-      deleteBtn.addEventListener('click', async () => {
-        await store.deleteEvenementPlanning(evenement.id);
+      deleteBtn.addEventListener('click', () => {
+        store.deleteEvenementPlanning(evenement.id);
         renderPlanning();
       });
       actions.appendChild(deleteBtn);
@@ -440,10 +435,10 @@ function renderPlanning() {
   });
 }
 
-async function handlePlanningSubmit(event) {
+function handlePlanningSubmit(event) {
   event.preventDefault();
   const formData = new FormData(event.target);
-  await store.addEvenementPlanning({
+  store.addEvenementPlanning({
     date: formData.get('date'),
     titre: (formData.get('titre') || '').toString().trim(),
     lieu: (formData.get('lieu') || '').toString().trim(),
@@ -477,14 +472,14 @@ function renderAdmin() {
   }
 }
 
-async function handleAdminLogin(event) {
+function handleAdminLogin(event) {
   event.preventDefault();
   const formData = new FormData(event.target);
   const password = (formData.get('password') || '').toString();
   const message = document.querySelector('#admin-verrou-message');
 
   if (!store.adminMotDePasseDefini()) {
-    await store.definirMotDePasseAdmin(password);
+    store.definirMotDePasseAdmin(password);
     store.deverrouillerAdmin();
     event.target.reset();
     renderAll();
@@ -505,12 +500,12 @@ function handleAdminLogout() {
   renderAll();
 }
 
-async function handleAdminPasswordUpdate(event) {
+function handleAdminPasswordUpdate(event) {
   event.preventDefault();
   const formData = new FormData(event.target);
   const password = (formData.get('password') || '').toString();
   if (!password) return;
-  await store.definirMotDePasseAdmin(password);
+  store.definirMotDePasseAdmin(password);
   event.target.reset();
 }
 
@@ -553,9 +548,9 @@ function createActiviteBlock(activite) {
   deleteBtn.type = 'button';
   deleteBtn.className = 'secondary';
   deleteBtn.textContent = 'Supprimer';
-  deleteBtn.addEventListener('click', async () => {
+  deleteBtn.addEventListener('click', () => {
     if (confirm(`Supprimer l'activité « ${activite.nom} » et ses types de record ?`)) {
-      await store.deleteActivite(activite.id);
+      store.deleteActivite(activite.id);
       renderActivites();
       renderAll();
     }
@@ -598,8 +593,8 @@ function createActiviteBlock(activite) {
       removeBtn.type = 'button';
       removeBtn.className = 'secondary';
       removeBtn.textContent = 'Supprimer';
-      removeBtn.addEventListener('click', async () => {
-        await store.deleteTypeRecord(type.id);
+      removeBtn.addEventListener('click', () => {
+        store.deleteTypeRecord(type.id);
         renderActivites();
         renderAll();
       });
@@ -718,10 +713,10 @@ function createActiviteBlock(activite) {
     formActions,
   );
 
-  form.addEventListener('submit', async (event) => {
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
     if (!nomInput.value.trim() || !uniteSaisieInput.value.trim() || !uniteInput.value.trim()) return;
-    await store.addTypeRecord({
+    store.addTypeRecord({
       activiteId: activite.id,
       nom: nomInput.value.trim(),
       mode: modeSelect.value,
@@ -746,13 +741,13 @@ function createActiviteBlock(activite) {
   return card;
 }
 
-async function handleActiviteSubmit(event) {
+function handleActiviteSubmit(event) {
   event.preventDefault();
   const formData = new FormData(event.target);
   const nom = (formData.get('nom') || '').toString().trim();
   const description = (formData.get('description') || '').toString().trim();
   if (!nom) return;
-  await store.addActivite({ nom, description });
+  store.addActivite({ nom, description });
   event.target.reset();
   toggleVisibility('#activite-form', false);
   renderActivites();
@@ -792,20 +787,7 @@ function setupInteractions() {
   document.querySelector('#activite-form')?.addEventListener('submit', handleActiviteSubmit);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   setupInteractions();
-  store.onChange(renderAll);
-
-  const grid = document.querySelector('#records-grid');
-  if (grid) grid.innerHTML = '<p class="help-text">Chargement des données…</p>';
-
-  try {
-    await store.initStore();
-    renderAll();
-  } catch (error) {
-    console.error('Impossible de se connecter à la base de données', error);
-    if (grid) {
-      grid.innerHTML = '<p class="help-text">Impossible de charger les données. Vérifie ta connexion.</p>';
-    }
-  }
+  renderAll();
 });
