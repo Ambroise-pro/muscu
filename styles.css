@@ -1,6 +1,6 @@
 :root {
   color-scheme: light dark;
-  --bg: #ff69b4;
+  --bg: linear-gradient(135deg, #22c55e, #2563eb);
   --fg: #1d1d1d;
   --primary: #0066ff;
   --primary-contrast: #ffffff;
