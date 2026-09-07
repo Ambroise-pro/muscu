@@ -16,21 +16,21 @@ export const MUSCLE_ZONES = [
 export const MUSCLE_GROUPS = MUSCLE_ZONES.flatMap((zone) => zone.muscles);
 
 export const MUSCLE_IMAGE_FILES = {
-  "Biceps": "biceps.svg",
-  "Triceps": "triceps.svg",
-  "Deltoides": "deltoides.svg",
-  "Trapèzes": "trapezes.svg",
-  "Avant bras": "avant-bras.svg",
-  "Pectoraux": "pectoraux.svg",
-  "Abdominaux": "abdominaux.svg",
-  "Dorsaux": "dorsaux.svg",
-  "Lombaires": "lombaires.svg",
-  "Quadriceps": "quadriceps.svg",
-  "Ischio jambier": "ischio-jambier.svg",
-  "Fessiers": "fessiers.svg",
-  "Adducteurs": "adducteurs.svg",
-  "Abducteurs": "abducteurs.svg",
-  "Mollets": "mollets.svg"
+  "Biceps": "biceps.png",
+  "Triceps": "triceps.png",
+  "Deltoides": "deltoides.png",
+  "Trapèzes": "trapezes.png",
+  "Avant bras": "avant-bras.png",
+  "Pectoraux": "pectoraux.png",
+  "Abdominaux": "abdominaux.png",
+  "Dorsaux": "dorsaux.png",
+  "Lombaires": "lombaires.png",
+  "Quadriceps": "quadriceps.png",
+  "Ischio jambier": "ischio-jambiers.png",
+  "Fessiers": "fessiers.png",
+  "Adducteurs": "adducteurs.png",
+  "Abducteurs": "abducteurs.png",
+  "Mollets": "mollets.png"
 };
 
 export const SMALL_MUSCLES = [

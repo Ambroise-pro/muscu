@@ -6,6 +6,7 @@ import { Input } from '../ui/Input';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MUSCLE_GROUPS, MUSCLE_ZONES } from '../../constants/muscles';
 import { calculateBrzycki } from '../../utils/calculations';
+import { getMuscleImage } from '../../utils/format';
 
 export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistoryItem, setView }) => {
   const [weight, setWeight] = useState('');
@@ -94,21 +95,28 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
         </h4>
 
         <div className="space-y-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-slate-400 text-sm font-medium ml-1">Groupe Musculaire</label>
-            <select
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
-              value={selectedMuscle}
-              onChange={(e) => setSelectedMuscle(e.target.value)}
-            >
-              {MUSCLE_ZONES.map((zone) => (
-                <optgroup key={zone.label} label={zone.label}>
-                  {zone.muscles.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 flex flex-col gap-1">
+              <label className="text-slate-400 text-sm font-medium ml-1">Groupe Musculaire</label>
+              <select
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
+                value={selectedMuscle}
+                onChange={(e) => setSelectedMuscle(e.target.value)}
+              >
+                {MUSCLE_ZONES.map((zone) => (
+                  <optgroup key={zone.label} label={zone.label}>
+                    {zone.muscles.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            <img
+              src={getMuscleImage(selectedMuscle)}
+              alt={selectedMuscle}
+              className="w-20 h-20 rounded-lg border border-slate-700 bg-slate-900 object-cover shrink-0"
+            />
           </div>
 
           <div className="flex flex-col gap-1">
