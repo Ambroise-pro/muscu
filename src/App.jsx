@@ -7,15 +7,14 @@ import { RMCalculator } from './components/views/RMCalculator';
 import { SessionBuilder } from './components/views/SessionBuilder';
 import { ActiveSessionPlayer } from './components/views/ActiveSessionPlayer';
 import { SessionHistory } from './components/views/SessionHistory';
-import { ProgressDashboard } from './components/views/ProgressDashboard';
+
+const DEFAULT_WORKOUT_SETTINGS = { goal: 'volume', restTime: 90 };
 
 export default function App() {
   const [view, setView] = useState('menu');
   const [savedRMs, setSavedRMs] = useState({});
-  const [history, setHistory] = useState([]); // Historique Calculs RM
-  const [sessionHistory, setSessionHistory] = useState([]); // Historique Séances
-  const [sessionItems, setSessionItems] = useState([]);
-  const [sessionSettings, setSessionSettings] = useState({ goal: 'volume', restTime: 90 });
+  const [seances, setSeances] = useState([]);
+  const [activeSeanceId, setActiveSeanceId] = useState(null);
   const [toast, setToast] = useState(null);
   const [showGroupsPopup, setShowGroupsPopup] = useState(false);
   const [showSafetyPopup, setShowSafetyPopup] = useState(false);
@@ -34,11 +33,8 @@ export default function App() {
       const rms = localStorage.getItem('muscu_rms');
       if (rms) setSavedRMs(JSON.parse(rms));
 
-      const hist = localStorage.getItem('muscu_history');
-      if (hist) setHistory(JSON.parse(hist));
-
-      const sessHist = localStorage.getItem('muscu_sessions');
-      if (sessHist) setSessionHistory(JSON.parse(sessHist));
+      const seancesStored = localStorage.getItem('muscu_seances');
+      if (seancesStored) setSeances(JSON.parse(seancesStored));
     } catch (e) {
       console.error("Erreur lecture données", e);
     }
@@ -53,12 +49,87 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const persistSeances = (next) => {
+    setSeances(next);
+    localStorage.setItem('muscu_seances', JSON.stringify(next));
+  };
+
+  const updateSeance = (id, updaterFn) => {
+    setSeances((prev) => {
+      const next = prev.map((s) => (s.id === id ? updaterFn(s) : s));
+      localStorage.setItem('muscu_seances', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const createSeance = () => {
+    const newSeance = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      rmCalcs: [],
+      workout: null
+    };
+    persistSeances([newSeance, ...seances]);
+    setActiveSeanceId(newSeance.id);
+    setView('session_hub');
+  };
+
+  const openSeance = (id) => {
+    setActiveSeanceId(id);
+    setView('session_hub');
+  };
+
+  const deleteSeance = (id) => {
+    persistSeances(seances.filter((s) => s.id !== id));
+    if (activeSeanceId === id) setActiveSeanceId(null);
+  };
+
+  const activeSeance = seances.find((s) => s.id === activeSeanceId) || null;
+  const allRmCalcs = seances.flatMap((s) => s.rmCalcs || []);
+
+  const sessionItems = activeSeance?.workout?.items || [];
+  const sessionSettings = activeSeance?.workout?.settings || DEFAULT_WORKOUT_SETTINGS;
+
+  const setSessionItems = (updater) => {
+    if (!activeSeanceId) return;
+    updateSeance(activeSeanceId, (s) => {
+      const currentItems = s.workout?.items || [];
+      const nextItems = typeof updater === 'function' ? updater(currentItems) : updater;
+      return {
+        ...s,
+        workout: {
+          items: nextItems,
+          settings: s.workout?.settings || DEFAULT_WORKOUT_SETTINGS,
+          logs: s.workout?.logs || null,
+          completedAt: s.workout?.completedAt || null
+        }
+      };
+    });
+  };
+
+  const setSessionSettings = (updater) => {
+    if (!activeSeanceId) return;
+    updateSeance(activeSeanceId, (s) => {
+      const currentSettings = s.workout?.settings || DEFAULT_WORKOUT_SETTINGS;
+      const nextSettings = typeof updater === 'function' ? updater(currentSettings) : updater;
+      return {
+        ...s,
+        workout: {
+          items: s.workout?.items || [],
+          settings: nextSettings,
+          logs: s.workout?.logs || null,
+          completedAt: s.workout?.completedAt || null
+        }
+      };
+    });
+  };
+
   const saveRM = (exercise, weight, meta) => {
     const newRMs = { ...savedRMs, [exercise]: parseFloat(weight) };
     setSavedRMs(newRMs);
     localStorage.setItem('muscu_rms', JSON.stringify(newRMs));
 
-    if (meta) {
+    if (meta && activeSeanceId) {
       const entry = {
         id: Date.now(),
         date: new Date().toISOString(),
@@ -66,9 +137,10 @@ export default function App() {
         rmResult: parseFloat(weight),
         ...meta
       };
-      const newHistory = [entry, ...history];
-      setHistory(newHistory);
-      localStorage.setItem('muscu_history', JSON.stringify(newHistory));
+      updateSeance(activeSeanceId, (s) => ({
+        ...s,
+        rmCalcs: [entry, ...(s.rmCalcs || [])]
+      }));
     }
     showToast(`Saved: ${exercise}`);
   };
@@ -80,38 +152,33 @@ export default function App() {
     localStorage.setItem('muscu_rms', JSON.stringify(next));
   };
 
-  const deleteHistoryItem = (id) => {
-    const next = history.filter(h => h.id !== id);
-    setHistory(next);
-    localStorage.setItem('muscu_history', JSON.stringify(next));
+  const deleteRMCalc = (calcId) => {
+    if (!activeSeanceId) return;
+    updateSeance(activeSeanceId, (s) => ({
+      ...s,
+      rmCalcs: (s.rmCalcs || []).filter((c) => c.id !== calcId)
+    }));
   };
 
-  const saveSession = (exercises, settings, logs) => {
-    const newSession = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      goal: settings.goal,
-      exercises: exercises,
-      logs: logs
-    };
-    const newHistory = [newSession, ...sessionHistory];
-    setSessionHistory(newHistory);
-    localStorage.setItem('muscu_sessions', JSON.stringify(newHistory));
-  };
-
-  const deleteSession = (id) => {
-    const newHistory = sessionHistory.filter(s => s.id !== id);
-    setSessionHistory(newHistory);
-    localStorage.setItem('muscu_sessions', JSON.stringify(newHistory));
+  const onSessionComplete = (exercises, settings, logs) => {
+    if (!activeSeanceId) return;
+    updateSeance(activeSeanceId, (s) => ({
+      ...s,
+      workout: {
+        items: exercises,
+        settings,
+        logs,
+        completedAt: new Date().toISOString()
+      }
+    }));
   };
 
   const handleExportData = () => {
     const payload = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       savedRMs,
-      history,
-      sessionHistory
+      seances
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -131,7 +198,7 @@ export default function App() {
     incoming.forEach((item) => {
       if (!map.has(item.id)) map.set(item.id, item);
     });
-    return Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
   };
 
   const handleImportFile = (e) => {
@@ -142,19 +209,14 @@ export default function App() {
       try {
         const parsed = JSON.parse(reader.result);
         const incomingSavedRMs = parsed.savedRMs || parsed.payload?.savedRMs || {};
-        const incomingHistory = parsed.history || parsed.payload?.history || [];
-        const incomingSessions = parsed.sessionHistory || parsed.payload?.sessionHistory || [];
+        const incomingSeances = parsed.seances || parsed.payload?.seances || [];
 
         const mergedRMs = { ...incomingSavedRMs, ...savedRMs };
-        const mergedHistory = mergeById(history, incomingHistory);
-        const mergedSessions = mergeById(sessionHistory, incomingSessions);
+        const mergedSeances = mergeById(seances, incomingSeances);
 
         setSavedRMs(mergedRMs);
-        setHistory(mergedHistory);
-        setSessionHistory(mergedSessions);
+        persistSeances(mergedSeances);
         localStorage.setItem('muscu_rms', JSON.stringify(mergedRMs));
-        localStorage.setItem('muscu_history', JSON.stringify(mergedHistory));
-        localStorage.setItem('muscu_sessions', JSON.stringify(mergedSessions));
         showToast("Sauvegarde importée (ajoutée).");
       } catch (err) {
         console.error("Import invalide", err);
@@ -216,8 +278,9 @@ export default function App() {
         {view === 'menu' && (
           <MainMenu
             savedRMs={savedRMs}
-            sessionHistory={sessionHistory}
+            seances={seances}
             setView={setView}
+            onCreateSeance={createSeance}
             onExportData={handleExportData}
             onImportData={handleImportData}
             safetyAccepted={safetyAccepted}
@@ -225,19 +288,19 @@ export default function App() {
         )}
 
         {view === 'session_hub' && (
-          <SessionHub setView={setView} />
+          <SessionHub setView={setView} activeSeance={activeSeance} />
         )}
 
         {view === 'calculator' && (
           <RMCalculator
             savedRMs={savedRMs} saveRM={saveRM} deleteRM={deleteRM}
-            history={history} deleteHistoryItem={deleteHistoryItem} setView={setView}
+            history={activeSeance?.rmCalcs || []} deleteHistoryItem={deleteRMCalc} setView={setView}
           />
         )}
 
         {view === 'session_builder' && (
           <SessionBuilder
-            savedRMs={savedRMs} history={history} sessionItems={sessionItems} setSessionItems={setSessionItems}
+            savedRMs={savedRMs} history={allRmCalcs} sessionItems={sessionItems} setSessionItems={setSessionItems}
             sessionSettings={sessionSettings} setSessionSettings={setSessionSettings} setView={setView}
           />
         )}
@@ -247,24 +310,15 @@ export default function App() {
             sessionItems={sessionItems}
             sessionSettings={sessionSettings}
             setView={setView}
-            onSessionComplete={saveSession}
+            onSessionComplete={onSessionComplete}
           />
         )}
 
         {view === 'history' && (
           <SessionHistory
-            sessionHistory={sessionHistory}
-            rmHistory={history}
-            deleteSession={deleteSession}
-            deleteHistoryItem={deleteHistoryItem}
-            setView={setView}
-          />
-        )}
-
-        {view === 'progress' && (
-          <ProgressDashboard
-            history={history}
-            sessionHistory={sessionHistory}
+            seances={seances}
+            onOpenSeance={openSeance}
+            deleteSeance={deleteSeance}
             setView={setView}
           />
         )}

@@ -1,5 +1,5 @@
 import {
-  Activity, Calendar, Download, History, TrendingUp, Upload
+  Activity, Calendar, Download, History, Upload
 } from 'lucide-react';
 
 const PrimaryAction = ({ icon, title, desc, onClick, disabled, tint }) => (
@@ -31,10 +31,10 @@ const SecondaryAction = ({ icon, title, onClick, disabled }) => (
   </button>
 );
 
-export const MainMenu = ({ savedRMs, sessionHistory = [], setView, onExportData, onImportData, safetyAccepted }) => {
+export const MainMenu = ({ savedRMs, seances = [], setView, onCreateSeance, onExportData, onImportData, safetyAccepted }) => {
   const locked = !safetyAccepted;
   const rmEntries = Object.entries(savedRMs || {});
-  const lastSession = sessionHistory[0];
+  const lastSeance = seances[0];
 
   return (
     <div className="space-y-5 animate-fade-in pt-2">
@@ -49,11 +49,11 @@ export const MainMenu = ({ savedRMs, sessionHistory = [], setView, onExportData,
           )}
         </div>
         <div className="bg-slate-800/70 border border-slate-700/70 rounded-xl2 p-4">
-          <div className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide mb-1">Séances loguées</div>
-          <div className="text-2xl font-black text-white">{sessionHistory.length}</div>
-          {lastSession && (
+          <div className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide mb-1">Séances créées</div>
+          <div className="text-2xl font-black text-white">{seances.length}</div>
+          {lastSeance && (
             <div className="text-slate-500 text-[11px] mt-1">
-              {new Date(lastSession.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+              {new Date(lastSeance.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
             </div>
           )}
         </div>
@@ -64,23 +64,17 @@ export const MainMenu = ({ savedRMs, sessionHistory = [], setView, onExportData,
           icon={<Activity size={20} />}
           title="Nouvelle séance"
           desc="Calculer un 1RM et/ou programmer un entraînement."
-          onClick={() => setView('session_hub')}
+          onClick={onCreateSeance}
           disabled={locked}
           tint={{ bg: "bg-emerald-500/15", text: "text-emerald-400" }}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1">
         <SecondaryAction
           icon={<Calendar size={18} />}
           title="Historique"
           onClick={() => setView('history')}
-          disabled={locked}
-        />
-        <SecondaryAction
-          icon={<TrendingUp size={18} />}
-          title="Progression"
-          onClick={() => setView('progress')}
           disabled={locked}
         />
       </div>
@@ -112,10 +106,10 @@ export const MainMenu = ({ savedRMs, sessionHistory = [], setView, onExportData,
         </div>
       </div>
 
-      {rmEntries.length === 0 && sessionHistory.length === 0 && !locked && (
+      {rmEntries.length === 0 && seances.length === 0 && !locked && (
         <div className="flex items-start gap-2 text-slate-500 text-xs px-1">
           <History size={14} className="mt-0.5 shrink-0" />
-          Aucune donnée pour l'instant : lancez un calcul 1RM ou une séance pour commencer.
+          Aucune donnée pour l'instant : lancez une nouvelle séance pour commencer.
         </div>
       )}
     </div>
