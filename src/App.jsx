@@ -153,8 +153,9 @@ export default function App() {
   };
 
   const deleteRMCalc = (calcId) => {
-    if (!activeSeanceId) return;
-    updateSeance(activeSeanceId, (s) => ({
+    const owner = seances.find((s) => (s.rmCalcs || []).some((c) => c.id === calcId));
+    if (!owner) return;
+    updateSeance(owner.id, (s) => ({
       ...s,
       rmCalcs: (s.rmCalcs || []).filter((c) => c.id !== calcId)
     }));
@@ -294,7 +295,7 @@ export default function App() {
         {view === 'calculator' && (
           <RMCalculator
             savedRMs={savedRMs} saveRM={saveRM} deleteRM={deleteRM}
-            history={activeSeance?.rmCalcs || []} deleteHistoryItem={deleteRMCalc} setView={setView}
+            history={allRmCalcs} deleteHistoryItem={deleteRMCalc} setView={setView}
           />
         )}
 
