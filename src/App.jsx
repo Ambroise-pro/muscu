@@ -289,7 +289,7 @@ export default function App() {
         )}
 
         {view === 'session_hub' && (
-          <SessionHub setView={setView} activeSeance={activeSeance} />
+          <SessionHub setView={setView} activeSeance={activeSeance} showToast={showToast} />
         )}
 
         {view === 'calculator' && (
