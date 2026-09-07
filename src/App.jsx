@@ -80,8 +80,19 @@ export default function App() {
   };
 
   const deleteSeance = (id) => {
-    persistSeances(seances.filter((s) => s.id !== id));
+    const removed = seances.find((s) => s.id === id);
+    const remaining = seances.filter((s) => s.id !== id);
+    persistSeances(remaining);
     if (activeSeanceId === id) setActiveSeanceId(null);
+
+    (removed?.rmCalcs || []).forEach((calc) => {
+      const stillReferenced = remaining.some((s) =>
+        (s.rmCalcs || []).some((c) => c.exercise === calc.exercise)
+      );
+      if (!stillReferenced) {
+        deleteRM(calc.exercise);
+      }
+    });
   };
 
   const activeSeance = seances.find((s) => s.id === activeSeanceId) || null;
@@ -155,10 +166,21 @@ export default function App() {
   const deleteRMCalc = (calcId) => {
     const owner = seances.find((s) => (s.rmCalcs || []).some((c) => c.id === calcId));
     if (!owner) return;
+    const deletedCalc = owner.rmCalcs.find((c) => c.id === calcId);
+
     updateSeance(owner.id, (s) => ({
       ...s,
       rmCalcs: (s.rmCalcs || []).filter((c) => c.id !== calcId)
     }));
+
+    if (deletedCalc) {
+      const stillReferenced = seances.some((s) =>
+        (s.rmCalcs || []).some((c) => c.id !== calcId && c.exercise === deletedCalc.exercise)
+      );
+      if (!stillReferenced) {
+        deleteRM(deletedCalc.exercise);
+      }
+    }
   };
 
   const onSessionComplete = (exercises, settings, logs) => {
