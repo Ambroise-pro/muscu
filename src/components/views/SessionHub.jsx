@@ -2,7 +2,7 @@ import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbb
 import { Card } from '../ui/Card';
 import { formatTime } from '../../utils/format';
 import { calculateBrzycki } from '../../utils/calculations';
-import { copyBilanToCarnet } from '../../utils/carnetExport';
+import { exportBilanToCarnet } from '../../utils/carnetExport';
 
 const HubAction = ({ icon, title, desc, onClick, tint }) => (
   <button
@@ -23,9 +23,15 @@ export const SessionHub = ({ setView, activeSeance, showToast }) => {
   const items = workout?.items || [];
   const hasBilan = rmCalcs.length > 0 || items.length > 0;
 
-  const handleCopyToCarnet = async () => {
-    const ok = await copyBilanToCarnet(activeSeance);
-    showToast?.(ok ? "Bilan copié — collez-le dans le Carnet." : "Impossible de copier le bilan.");
+  const handleCopyToCarnet = () => {
+    const { copied, opened } = exportBilanToCarnet(activeSeance);
+    if (!opened) {
+      showToast?.("Onglet bloqué par le navigateur — autorisez les popups pour ce site.");
+    } else if (!copied) {
+      showToast?.("Le Carnet s'est ouvert, mais la copie a échoué : réessayez.");
+    } else {
+      showToast?.("Bilan copié — collez-le dans le Carnet.");
+    }
   };
 
   return (

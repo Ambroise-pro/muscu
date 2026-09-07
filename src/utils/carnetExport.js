@@ -117,7 +117,10 @@ export const buildBilanText = (seance) => {
   return lines.join('\n');
 };
 
-export const copyToClipboard = (html, text) => {
+// Fiable sur iPad/Safari : écriture synchrone via l'évènement copy, dans le
+// même geste utilisateur (pas d'await avant), ce que le clic droit "Coller"
+// natif du navigateur sait toujours lire.
+const writeViaExecCommand = (html, text) => {
   const handler = (e) => {
     e.clipboardData.setData("text/plain", text);
     e.clipboardData.setData("text/html", `<!--CARNET_RESULTS_V1-->${html}`);
@@ -129,17 +132,49 @@ export const copyToClipboard = (html, text) => {
   return ok;
 };
 
-export const copyBilanToCarnet = async (seance) => {
+// Écriture additionnelle via l'API Clipboard asynchrone (ClipboardItem) :
+// certains boutons "Coller" applicatifs (dont celui du Carnet) lisent le
+// presse-papiers via navigator.clipboard.read() plutôt que via l'évènement
+// paste natif. On la tente en plus, sans jamais bloquer/attendre dessus
+// (elle est lancée pendant le même geste utilisateur, mais on ne l'awaite
+// pas pour ne pas retarder l'ouverture de l'onglet).
+const writeViaClipboardApi = (html, text) => {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") return;
+  try {
+    const item = new ClipboardItem({
+      "text/plain": new Blob([text], { type: "text/plain" }),
+      "text/html": new Blob([`<!--CARNET_RESULTS_V1-->${html}`], { type: "text/html" })
+    });
+    navigator.clipboard.write([item]).catch(() => {});
+  } catch (e) {
+    // ClipboardItem/type non supporté : on ignore, execCommand reste la référence.
+  }
+};
+
+// Ouvre l'onglet Carnet en tout premier (synchrone, avant toute écriture
+// presse-papiers) pour rester dans la fenêtre de tolérance des bloqueurs de
+// popup (Safari en particulier annule l'activation utilisateur dès qu'un
+// await a eu lieu avant l'appel à window.open).
+export const exportBilanToCarnet = (seance) => {
+  const newTab = window.open('', '_blank');
+
   const html = buildBilanHtml(seance);
   const text = buildBilanText(seance);
-  const ok = copyToClipboard(html, text);
-  if (!ok) {
+  const copied = writeViaExecCommand(html, text);
+  writeViaClipboardApi(html, text);
+
+  let opened = false;
+  if (newTab) {
     try {
-      await navigator.clipboard.writeText(text);
+      newTab.location.href = CARNET_URL;
+      opened = true;
     } catch (e) {
-      return false;
+      opened = false;
     }
   }
-  window.open(CARNET_URL, "_blank");
-  return true;
+  if (!opened) {
+    opened = !!window.open(CARNET_URL, "_blank");
+  }
+
+  return { copied, opened };
 };
