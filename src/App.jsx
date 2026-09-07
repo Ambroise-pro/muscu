@@ -341,7 +341,7 @@ export default function App() {
               </div>
               <div className="p-3">
                 <img
-                  src={`${import.meta.env.BASE_URL}groupes.jpg`}
+                  src={`${import.meta.env.BASE_URL}groupes.png`}
                   alt="Groupes musculaires"
                   className="w-full h-auto rounded-lg border border-slate-800"
                 />

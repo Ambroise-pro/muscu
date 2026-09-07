@@ -12,7 +12,7 @@ export const formatTime = (seconds) => {
 export const getMuscleImage = (muscle) => {
   const file = MUSCLE_IMAGE_FILES[muscle];
   if (file) return `${import.meta.env.BASE_URL}muscles/${file}`;
-  return `${import.meta.env.BASE_URL}groupes.jpg`;
+  return `${import.meta.env.BASE_URL}groupes.png`;
 };
 
 // Fonction de vérification d'un exercice par rapport à l'objectif
