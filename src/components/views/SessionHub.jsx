@@ -1,4 +1,7 @@
-import { ArrowLeft, Calculator, CheckCircle, Dumbbell, ListChecks } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, Dumbbell } from 'lucide-react';
+import { Card } from '../ui/Card';
+import { formatTime } from '../../utils/format';
+import { calculateBrzycki } from '../../utils/calculations';
 
 const HubAction = ({ icon, title, desc, onClick, tint }) => (
   <button
@@ -14,16 +17,10 @@ const HubAction = ({ icon, title, desc, onClick, tint }) => (
 );
 
 export const SessionHub = ({ setView, activeSeance }) => {
-  const rmCount = activeSeance?.rmCalcs?.length || 0;
+  const rmCalcs = activeSeance?.rmCalcs || [];
   const workout = activeSeance?.workout;
-  const itemsCount = workout?.items?.length || 0;
-
-  let workoutStatus = "Aucun programme d'entraînement.";
-  if (workout?.completedAt) {
-    workoutStatus = `Entraînement loggé le ${new Date(workout.completedAt).toLocaleDateString('fr-FR')}.`;
-  } else if (itemsCount > 0) {
-    workoutStatus = `Programme prêt (${itemsCount} exercice${itemsCount > 1 ? 's' : ''}).`;
-  }
+  const items = workout?.items || [];
+  const hasBilan = rmCalcs.length > 0 || items.length > 0;
 
   return (
     <div className="space-y-5 animate-fade-in pt-2">
@@ -35,18 +32,107 @@ export const SessionHub = ({ setView, activeSeance }) => {
       </div>
 
       {activeSeance && (
-        <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl2 p-4 space-y-2">
-          <div className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">
-            Dossier créé le {new Date(activeSeance.createdAt).toLocaleDateString('fr-FR')}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <ListChecks size={14} className="text-accent shrink-0" />
-            {rmCount > 0 ? `${rmCount} calcul${rmCount > 1 ? 's' : ''} 1RM enregistré${rmCount > 1 ? 's' : ''}.` : "Aucun calcul 1RM enregistré."}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <CheckCircle size={14} className="text-emerald-400 shrink-0" />
-            {workoutStatus}
-          </div>
+        <div className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">
+          Dossier créé le {new Date(activeSeance.createdAt).toLocaleDateString('fr-FR')}
+        </div>
+      )}
+
+      {hasBilan && (
+        <div className="space-y-3">
+          <h3 className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+            <CheckCircle size={16} className="text-emerald-400" /> Bilan de la séance
+          </h3>
+
+          {rmCalcs.length > 0 && (
+            <Card>
+              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Calculator size={14} className="text-accent" /> Calculs 1RM ({rmCalcs.length})
+              </div>
+              <div className="space-y-2">
+                {rmCalcs.map((item) => (
+                  <div key={item.id} className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <div className="font-bold text-white flex items-center gap-2">
+                        {item.muscle || "Non renseigné"}
+                        {item.isUnreliable && <AlertTriangle size={12} className="text-amber-500" />}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {item.exercise}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {item.weightInput}kg x {item.repsInput}
+                      </div>
+                    </div>
+                    <span className="font-black text-accent text-lg">{item.rmResult}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {items.length > 0 && (
+            <Card>
+              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Dumbbell size={14} className="text-emerald-400" />
+                Entraînement
+                {workout?.completedAt
+                  ? ` • loggé le ${new Date(workout.completedAt).toLocaleDateString('fr-FR')}`
+                  : " • programmé (pas encore réalisé)"}
+              </div>
+              <div className="space-y-4">
+                {items.map((exo, idx) => {
+                  const logs = workout?.logs ? workout.logs[idx] : null;
+                  const rmEstimate = calculateBrzycki(exo.weight, exo.reps);
+                  return (
+                    <div key={idx} className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-slate-200 font-bold text-sm">{exo.exercise}</span>
+                        <span className="text-slate-500 text-xs">
+                          {exo.sets}x{exo.reps} @ {exo.weight || '-'}kg
+                          {rmEstimate > 0 && (
+                            <span className="text-accent"> • 1RM est.: {rmEstimate}kg</span>
+                          )}
+                        </span>
+                      </div>
+
+                      {logs && logs.length > 0 ? (
+                        <table className="w-full text-xs text-center text-slate-400">
+                          <thead>
+                            <tr className="border-b border-slate-700 text-slate-500">
+                              <th className="pb-1">Série</th>
+                              <th className="pb-1">Effort</th>
+                              <th className="pb-1">Repos</th>
+                              <th className="pb-1">RPE</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {logs.map((log, i) => (
+                              <tr key={i} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
+                                <td className="py-1.5 font-bold text-slate-300">{log.set}</td>
+                                <td className="py-1.5">{formatTime(log.workTime)}</td>
+                                <td className="py-1.5 text-amber-500/80">{formatTime(log.realRestTime)}</td>
+                                <td className="py-1.5">
+                                  <span className={`px-1.5 py-0.5 rounded ${
+                                    log.rpe >= 9 ? 'bg-red-900/50 text-red-200' :
+                                    log.rpe >= 7 ? 'bg-amber-900/50 text-amber-200' :
+                                    'bg-emerald-900/50 text-emerald-200'
+                                  }`}>
+                                    {log.rpe}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="text-xs text-slate-600 italic text-center">Pas encore réalisé.</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
         </div>
       )}
 
@@ -64,7 +150,7 @@ export const SessionHub = ({ setView, activeSeance }) => {
         />
         <HubAction
           icon={<Dumbbell size={22} />}
-          title={itemsCount > 0 ? "Modifier l'entraînement" : "Programmer l'entraînement"}
+          title={items.length > 0 ? "Modifier l'entraînement" : "Programmer l'entraînement"}
           desc="Construire le programme d'exercices et lancer le chrono."
           onClick={() => setView('session_builder')}
           tint={{ bg: "bg-emerald-500/15", text: "text-emerald-400" }}

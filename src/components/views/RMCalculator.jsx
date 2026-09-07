@@ -138,14 +138,14 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
             <div key={item.id} className="bg-slate-900 p-3 rounded-lg border border-slate-800 flex justify-between items-center">
               <div>
                 <div className="font-bold text-white flex items-center gap-2">
-                  {item.exercise}
+                  {item.muscle || "Non renseigné"}
                   {item.isUnreliable && <AlertTriangle size={12} className="text-amber-500" />}
+                </div>
+                <div className="text-xs text-slate-400">
+                  {item.exercise}
                 </div>
                 <div className="text-xs text-slate-500">
                   {new Date(item.date).toLocaleDateString()} • {item.weightInput}kg x {item.repsInput}
-                </div>
-                <div className="text-xs text-slate-400">
-                  Muscle: {item.muscle || "Non renseigné"}
                 </div>
               </div>
               <div className="flex items-center gap-3">
