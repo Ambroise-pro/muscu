@@ -151,30 +151,20 @@ const writeViaClipboardApi = (html, text) => {
   }
 };
 
-// Ouvre l'onglet Carnet en tout premier (synchrone, avant toute écriture
-// presse-papiers) pour rester dans la fenêtre de tolérance des bloqueurs de
-// popup (Safari en particulier annule l'activation utilisateur dès qu'un
-// await a eu lieu avant l'appel à window.open).
+// Ordre important : la copie (execCommand) doit être le tout premier appel
+// du geste utilisateur — c'est l'appel le plus fragile, qui échoue
+// silencieusement si une autre API "activation-gated" (window.open,
+// clipboard.write...) a été invoquée juste avant lui. window.open passe
+// ensuite, pendant qu'on est encore dans le même geste. L'écriture via
+// l'API Clipboard asynchrone est tentée en dernier (fire-and-forget) car
+// elle importe moins si l'activation est déjà consommée à ce stade.
 export const exportBilanToCarnet = (seance) => {
-  const newTab = window.open('', '_blank');
-
   const html = buildBilanHtml(seance);
   const text = buildBilanText(seance);
+
   const copied = writeViaExecCommand(html, text);
+  const newTab = window.open(CARNET_URL, "_blank");
   writeViaClipboardApi(html, text);
 
-  let opened = false;
-  if (newTab) {
-    try {
-      newTab.location.href = CARNET_URL;
-      opened = true;
-    } catch (e) {
-      opened = false;
-    }
-  }
-  if (!opened) {
-    opened = !!window.open(CARNET_URL, "_blank");
-  }
-
-  return { copied, opened };
+  return { copied, opened: !!newTab };
 };
