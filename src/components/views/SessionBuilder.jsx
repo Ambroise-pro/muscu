@@ -188,7 +188,7 @@ export const SessionBuilder = ({
   return (
     <div className="space-y-6 animate-fade-in pb-20">
       <div className="flex items-center gap-2">
-        <button onClick={() => setView('menu')} className="text-slate-400 hover:text-white">
+        <button onClick={() => setView('session_hub')} className="text-slate-400 hover:text-white">
           <ArrowLeft size={24} />
         </button>
         <h2 className="text-2xl font-bold text-white">Préparer Séance</h2>
@@ -431,7 +431,7 @@ export const SessionBuilder = ({
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="grid gap-3 md:grid-cols-2">
         {sessionItems.map((item) => {
           // Validation de l'exercice
           const issues = getValidationIssues(item, sessionSettings.goal);

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dumbbell, PersonStanding, Plus, Shield } from 'lucide-react';
 import { SAFETY_TITLE, SAFETY_SECTIONS, SAFETY_SECTION_ICONS, SAFETY_SUBSECTION_ICONS } from './constants/safety';
 import { MainMenu } from './components/views/MainMenu';
+import { SessionHub } from './components/views/SessionHub';
 import { RMCalculator } from './components/views/RMCalculator';
 import { SessionBuilder } from './components/views/SessionBuilder';
 import { ActiveSessionPlayer } from './components/views/ActiveSessionPlayer';
@@ -178,7 +179,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-accent/30">
-      <div className="max-w-md mx-auto min-h-screen flex flex-col relative">
+      <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto min-h-screen flex flex-col relative">
         <header className="sticky top-0 z-30 flex items-center justify-between gap-2 px-4 py-3 bg-slate-950/90 backdrop-blur border-b border-slate-800/80">
           <button
             onClick={() => setView('menu')}
@@ -221,6 +222,10 @@ export default function App() {
             onImportData={handleImportData}
             safetyAccepted={safetyAccepted}
           />
+        )}
+
+        {view === 'session_hub' && (
+          <SessionHub setView={setView} />
         )}
 
         {view === 'calculator' && (
@@ -268,7 +273,7 @@ export default function App() {
 
         {showGroupsPopup && (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-md w-full">
+            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-md md:max-w-2xl w-full">
               <div className="flex items-center justify-between p-3 border-b border-slate-800">
                 <div className="text-sm font-bold text-slate-200">Groupes musculaires</div>
                 <button
@@ -292,7 +297,7 @@ export default function App() {
 
         {showSafetyPopup && (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-amber-700/50 rounded-xl shadow-2xl max-w-md w-full">
+            <div className="bg-slate-900 border border-amber-700/50 rounded-xl shadow-2xl max-w-md md:max-w-2xl w-full">
               <div className="flex items-center justify-between p-3 border-b border-slate-800">
                 <div className="text-sm font-bold text-amber-200">Apparté sécurité</div>
                 <button

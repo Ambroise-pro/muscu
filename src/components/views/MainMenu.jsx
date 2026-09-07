@@ -1,5 +1,5 @@
 import {
-  Activity, Calculator, Calendar, Download, History, TrendingUp, Upload
+  Activity, Calendar, Download, History, TrendingUp, Upload
 } from 'lucide-react';
 
 const PrimaryAction = ({ icon, title, desc, onClick, disabled, tint }) => (
@@ -63,18 +63,10 @@ export const MainMenu = ({ savedRMs, sessionHistory = [], setView, onExportData,
         <PrimaryAction
           icon={<Activity size={20} />}
           title="Nouvelle séance"
-          desc="Créer un programme et lancer le chrono."
-          onClick={() => setView('session_builder')}
+          desc="Calculer un 1RM et/ou programmer un entraînement."
+          onClick={() => setView('session_hub')}
           disabled={locked}
           tint={{ bg: "bg-emerald-500/15", text: "text-emerald-400" }}
-        />
-        <PrimaryAction
-          icon={<Calculator size={20} />}
-          title="Calculateur 1RM"
-          desc="Estimer votre 1RM pour calibrer vos séances."
-          onClick={() => setView('calculator')}
-          disabled={locked}
-          tint={{ bg: "bg-accent-soft", text: "text-accent" }}
         />
       </div>
 

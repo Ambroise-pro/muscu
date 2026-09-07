@@ -4,7 +4,7 @@ export const ExerciseGuideModal = ({ title, guide, onClose }) => {
   if (!guide) return null;
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-blue-700/50 rounded-xl shadow-2xl max-w-md w-full">
+      <div className="bg-slate-900 border border-blue-700/50 rounded-xl shadow-2xl max-w-md md:max-w-lg w-full">
         <div className="flex items-center justify-between p-3 border-b border-slate-800">
           <div className="text-sm font-bold text-blue-200 flex items-center gap-2">
             <BookOpen size={16} /> Fiche technique • {title}

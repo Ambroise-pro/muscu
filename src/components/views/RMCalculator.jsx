@@ -37,7 +37,7 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
     <div className="space-y-6 animate-fade-in pb-20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button onClick={() => setView('menu')} className="text-slate-400 hover:text-white">
+          <button onClick={() => setView('session_hub')} className="text-slate-400 hover:text-white">
             <ArrowLeft size={24} />
           </button>
           <h2 className="text-2xl font-bold text-white">Calculateur 1RM</h2>

@@ -98,7 +98,7 @@ export const ProgressDashboard = ({ history = [], sessionHistory = [], setView }
 
       <Card>
         <div className="text-sm font-bold text-white mb-3">Progression par exercice (1RM)</div>
-        <div className="space-y-2">
+        <div className="grid gap-2 md:grid-cols-2">
           {exerciseTrends.length === 0 && <div className="text-slate-500 text-sm">Aucune donnée 1RM.</div>}
           {exerciseTrends.map((trend) => (
             <div key={trend.exercise} className="bg-slate-900 border border-slate-700 rounded-lg p-3">
@@ -128,7 +128,7 @@ export const ProgressDashboard = ({ history = [], sessionHistory = [], setView }
 
       <Card>
         <div className="text-sm font-bold text-white mb-3">Moyenne 1RM par muscle</div>
-        <div className="space-y-2">
+        <div className="grid gap-2 md:grid-cols-2">
           {muscleSummary.length === 0 && <div className="text-slate-500 text-sm">Aucune donnée par muscle.</div>}
           {muscleSummary.map((row) => (
             <div key={row.muscle} className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg px-3 py-2">

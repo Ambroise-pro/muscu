@@ -465,21 +465,21 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
           )}
 
           <div className="grid grid-cols-3 gap-2 mb-6">
-            <div className="bg-slate-900/80 p-2 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
-              <div className="text-slate-400 text-[10px] uppercase">Série</div>
-              <div className="text-lg font-bold text-white">
+            <div className="bg-slate-900/80 p-2 md:p-3 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
+              <div className="text-slate-400 text-[10px] md:text-xs uppercase">Série</div>
+              <div className="text-lg md:text-2xl font-bold text-white">
                 <span className={isResting ? "text-slate-500" : "text-blue-400"}>{currentSet}</span>
-                <span className="text-slate-600 text-sm">/{totalSets}</span>
+                <span className="text-slate-600 text-sm md:text-base">/{totalSets}</span>
               </div>
             </div>
-            <div className="bg-slate-900/80 p-2 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
-              <div className="text-slate-400 text-[10px] uppercase">Reps</div>
-              <div className="text-lg font-bold text-white">{currentSetTarget.reps}</div>
+            <div className="bg-slate-900/80 p-2 md:p-3 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
+              <div className="text-slate-400 text-[10px] md:text-xs uppercase">Reps</div>
+              <div className="text-lg md:text-2xl font-bold text-white">{currentSetTarget.reps}</div>
             </div>
-            <div className="bg-slate-900/80 p-2 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
-              <div className="text-slate-400 text-[10px] uppercase">Charge</div>
-              <div className="text-lg font-bold text-white">
-                {currentSetTarget.weight || '--'}<span className="text-xs font-normal text-slate-500">kg</span>
+            <div className="bg-slate-900/80 p-2 md:p-3 rounded-lg text-center border border-slate-700 backdrop-blur-sm">
+              <div className="text-slate-400 text-[10px] md:text-xs uppercase">Charge</div>
+              <div className="text-lg md:text-2xl font-bold text-white">
+                {currentSetTarget.weight || '--'}<span className="text-xs md:text-sm font-normal text-slate-500">kg</span>
               </div>
             </div>
           </div>
@@ -487,10 +487,10 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
 
         <div className="relative z-10 flex flex-col items-center justify-center gap-6">
           <div className="text-center">
-            <div className="text-xs uppercase tracking-widest text-slate-500 mb-1">
+            <div className="text-xs md:text-sm uppercase tracking-widest text-slate-500 mb-1">
               {isResting ? "Temps Restant" : "Chrono Série"}
             </div>
-            <div className={`text-6xl font-mono font-black tabular-nums tracking-tighter transition-colors ${
+            <div className={`text-6xl md:text-8xl font-mono font-black tabular-nums tracking-tighter transition-colors ${
               status === 'working' ? 'text-blue-400' :
               status === 'resting' ? 'text-amber-400' : 'text-slate-600'
             }`}>
