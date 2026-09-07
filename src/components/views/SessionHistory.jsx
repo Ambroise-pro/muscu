@@ -1,9 +1,17 @@
+import { useState } from 'react';
 import { ArrowLeft, Calculator, Calendar, Dumbbell, Trash2 } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SESSION_GOALS } from '../../constants/exercises';
 
 export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setView }) => {
   const ordered = [...seances].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  const handleConfirmDelete = () => {
+    deleteSeance(pendingDeleteId);
+    setPendingDeleteId(null);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -54,7 +62,7 @@ export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setVi
                 </button>
 
                 <button
-                  onClick={() => deleteSeance(seance.id)}
+                  onClick={() => setPendingDeleteId(seance.id)}
                   className="absolute top-3 right-3 text-slate-600 hover:text-red-400 p-1"
                   aria-label="Supprimer ce dossier"
                 >
@@ -65,6 +73,15 @@ export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setVi
           })
         )}
       </div>
+
+      {pendingDeleteId !== null && (
+        <ConfirmDialog
+          title="Supprimer ce dossier de séance ?"
+          message="Le dossier, ses calculs 1RM et son programme d'entraînement seront définitivement supprimés."
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+        />
+      )}
     </div>
   );
 };

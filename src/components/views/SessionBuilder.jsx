@@ -6,6 +6,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ExerciseGuideModal } from '../ui/ExerciseGuideModal';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MUSCLE_GROUPS, MUSCLE_ZONES, SMALL_MUSCLES } from '../../constants/muscles';
 import { SESSION_GOALS, WORK_PATTERNS, GOAL_RULES, TECH_GUIDE_ENABLED } from '../../constants/exercises';
 import { getExerciseGuide, getValidationIssues } from '../../utils/format';
@@ -34,6 +35,7 @@ export const SessionBuilder = ({
   const [showSettings, setShowSettings] = useState(true);
   const [showRulesPopup, setShowRulesPopup] = useState(false);
   const [showGuidePopup, setShowGuidePopup] = useState(false);
+  const [pendingRemoveId, setPendingRemoveId] = useState(null);
 
   // Pour l'édition
   const [editingId, setEditingId] = useState(null);
@@ -453,7 +455,7 @@ export const SessionBuilder = ({
                     <button onClick={() => editItem(item)} className="text-slate-500 hover:text-white p-1 bg-slate-900 rounded border border-slate-700">
                         <Edit2 size={16} />
                     </button>
-                    <button onClick={() => removeItem(item.id)} className="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700">
+                    <button onClick={() => setPendingRemoveId(item.id)} className="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700">
                         <Trash2 size={16} />
                     </button>
                 </div>
@@ -473,6 +475,19 @@ export const SessionBuilder = ({
         })}
         {sessionItems.length === 0 && <div className="text-center text-slate-500 py-4 italic">Liste vide.</div>}
       </div>
+
+      {pendingRemoveId !== null && (
+        <ConfirmDialog
+          title="Retirer cet exercice ?"
+          message="Il sera retiré du programme de cette séance."
+          confirmLabel="Retirer"
+          onConfirm={() => {
+            removeItem(pendingRemoveId);
+            setPendingRemoveId(null);
+          }}
+          onCancel={() => setPendingRemoveId(null)}
+        />
+      )}
     </div>
   );
 };

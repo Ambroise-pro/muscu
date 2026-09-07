@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowLeft, HelpCircle, History, Info, Save, Trash2 } fro
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MUSCLE_GROUPS, MUSCLE_ZONES } from '../../constants/muscles';
 import { calculateBrzycki } from '../../utils/calculations';
 
@@ -13,6 +14,7 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
   const [machineName, setMachineName] = useState('');
   const [result, setResult] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const repsNum = parseInt(reps) || 0;
   const isUnreliable = repsNum > 10;
@@ -148,7 +150,7 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-black text-blue-400 text-lg">{item.rmResult}</span>
-                <button onClick={() => deleteHistoryItem(item.id)} className="text-slate-600 hover:text-red-400">
+                <button onClick={() => setPendingDeleteId(item.id)} className="text-slate-600 hover:text-red-400">
                   <Trash2 size={16}/>
                 </button>
               </div>
@@ -156,6 +158,18 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
           ))
         )}
       </div>
+
+      {pendingDeleteId !== null && (
+        <ConfirmDialog
+          title="Supprimer ce calcul 1RM ?"
+          message="Cette entrée sera définitivement retirée de l'historique."
+          onConfirm={() => {
+            deleteHistoryItem(pendingDeleteId);
+            setPendingDeleteId(null);
+          }}
+          onCancel={() => setPendingDeleteId(null)}
+        />
+      )}
     </div>
   );
 };
