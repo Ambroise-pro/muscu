@@ -6,6 +6,7 @@ import {
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ExerciseGuideModal } from '../ui/ExerciseGuideModal';
+import { MuscleImageModal } from '../ui/MuscleImageModal';
 import { GOAL_RULES, TECH_GUIDE_ENABLED } from '../../constants/exercises';
 import { PEER_EVAL_CRITERIA, createPeerEvalState, isPeerEvalComplete, computePeerEvalScore } from '../../constants/peerEval';
 import { formatTime, getMuscleImage, getExerciseGuide } from '../../utils/format';
@@ -18,6 +19,7 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
   const [exerciseSetCaps, setExerciseSetCaps] = useState({});
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [showGuidePopup, setShowGuidePopup] = useState(false);
+  const [showMuscleImage, setShowMuscleImage] = useState(false);
   const [timeBudgetMin, setTimeBudgetMin] = useState("");
   const [timePlannerMessage, setTimePlannerMessage] = useState(null);
   const [peerEvaluation, setPeerEvaluation] = useState(createPeerEvalState());
@@ -442,9 +444,12 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
 
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-blue-400 font-bold uppercase tracking-widest text-xs bg-slate-900/50 px-2 py-1 rounded backdrop-blur-sm">
+            <button
+              onClick={() => setShowMuscleImage(true)}
+              className="text-blue-400 font-bold uppercase tracking-widest text-xs bg-slate-900/50 px-2 py-1 rounded backdrop-blur-sm hover:bg-slate-900/80"
+            >
               {currentExercise.muscle}
-            </span>
+            </button>
             {isResting && (
               <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded text-xs font-bold animate-pulse flex items-center gap-1">
                 <Clock size={12} /> REPOS
@@ -681,6 +686,10 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
           guide={getExerciseGuide(currentExercise.exercise, currentExercise.muscle)}
           onClose={() => setShowGuidePopup(false)}
         />
+      )}
+
+      {showMuscleImage && (
+        <MuscleImageModal muscle={currentExercise.muscle} onClose={() => setShowMuscleImage(false)} />
       )}
     </div>
   );

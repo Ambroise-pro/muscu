@@ -4,6 +4,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { MuscleImageModal } from '../ui/MuscleImageModal';
 import { MUSCLE_GROUPS, MUSCLE_ZONES } from '../../constants/muscles';
 import { calculateBrzycki } from '../../utils/calculations';
 import { getMuscleImage } from '../../utils/format';
@@ -16,6 +17,7 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
   const [result, setResult] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [showMuscleImage, setShowMuscleImage] = useState(false);
 
   const repsNum = parseInt(reps) || 0;
   const isUnreliable = repsNum > 10;
@@ -112,11 +114,18 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
                 ))}
               </select>
             </div>
-            <img
-              src={getMuscleImage(selectedMuscle)}
-              alt={selectedMuscle}
-              className="w-20 h-20 rounded-lg border border-slate-700 bg-slate-900 object-cover shrink-0"
-            />
+            <button
+              type="button"
+              onClick={() => setShowMuscleImage(true)}
+              className="shrink-0"
+              aria-label={`Agrandir l'image de ${selectedMuscle}`}
+            >
+              <img
+                src={getMuscleImage(selectedMuscle)}
+                alt={selectedMuscle}
+                className="w-20 h-20 rounded-lg border border-slate-700 bg-slate-900 object-cover"
+              />
+            </button>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -177,6 +186,10 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
           }}
           onCancel={() => setPendingDeleteId(null)}
         />
+      )}
+
+      {showMuscleImage && (
+        <MuscleImageModal muscle={selectedMuscle} onClose={() => setShowMuscleImage(false)} />
       )}
     </div>
   );
