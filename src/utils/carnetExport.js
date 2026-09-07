@@ -151,20 +151,22 @@ const writeViaClipboardApi = (html, text) => {
   }
 };
 
-// Ordre important : la copie (execCommand) doit être le tout premier appel
-// du geste utilisateur — c'est l'appel le plus fragile, qui échoue
-// silencieusement si une autre API "activation-gated" (window.open,
-// clipboard.write...) a été invoquée juste avant lui. window.open passe
-// ensuite, pendant qu'on est encore dans le même geste. L'écriture via
-// l'API Clipboard asynchrone est tentée en dernier (fire-and-forget) car
-// elle importe moins si l'activation est déjà consommée à ce stade.
+// Ordre important, dans cet ordre précis :
+// 1. execCommand("copy") — le plus fragile, doit être le tout premier appel
+//    du geste utilisateur pour ne pas échouer silencieusement.
+// 2. navigator.clipboard.write() — doit être lancé pendant que CE document
+//    est encore focus (elle exige un document actif) : window.open juste
+//    après déplacerait le focus vers le nouvel onglet et ferait échouer
+//    cette écriture si elle passait après lui.
+// 3. window.open — en dernier, une fois qu'on n'a plus besoin du focus ni
+//    de l'activation pour autre chose.
 export const exportBilanToCarnet = (seance) => {
   const html = buildBilanHtml(seance);
   const text = buildBilanText(seance);
 
   const copied = writeViaExecCommand(html, text);
-  const newTab = window.open(CARNET_URL, "_blank");
   writeViaClipboardApi(html, text);
+  const newTab = window.open(CARNET_URL, "_blank");
 
   return { copied, opened: !!newTab };
 };
