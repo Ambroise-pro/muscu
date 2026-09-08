@@ -1,6 +1,8 @@
 import {
-  Activity, Calendar, Download, History, Upload
+  Activity, AlertTriangle, Calendar, Download, History, Upload
 } from 'lucide-react';
+
+const BACKUP_REMINDER_DAYS = 7;
 
 const PrimaryAction = ({ icon, title, desc, onClick, disabled, tint }) => (
   <button
@@ -31,10 +33,15 @@ const SecondaryAction = ({ icon, title, onClick, disabled }) => (
   </button>
 );
 
-export const MainMenu = ({ savedRMs, seances = [], setView, onCreateSeance, onExportData, onImportData, safetyAccepted }) => {
+export const MainMenu = ({ savedRMs, seances = [], setView, onCreateSeance, onExportData, onImportData, lastExportAt, safetyAccepted }) => {
   const locked = !safetyAccepted;
   const rmEntries = Object.entries(savedRMs || {});
   const lastSeance = seances[0];
+
+  const daysSinceExport = lastExportAt
+    ? Math.floor((Date.now() - new Date(lastExportAt).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const backupStale = daysSinceExport === null || daysSinceExport >= BACKUP_REMINDER_DAYS;
 
   return (
     <div className="space-y-5 animate-fade-in pt-2">
@@ -79,11 +86,28 @@ export const MainMenu = ({ savedRMs, seances = [], setView, onCreateSeance, onEx
         />
       </div>
 
-      <div className={`bg-slate-800/60 border border-slate-700/60 rounded-xl2 p-4 ${locked ? "opacity-50" : ""}`}>
+      <div className={`bg-slate-800/60 border rounded-xl2 p-4 ${locked ? "opacity-50 border-slate-700/60" : backupStale ? "border-amber-600/60" : "border-slate-700/60"}`}>
         <div className="text-sm font-bold text-white mb-1">Sauvegarde &amp; restauration</div>
         <p className="text-slate-400 text-xs mb-3">
           Exportez un fichier et importez-le sur une autre tablette (ajout sans écraser).
         </p>
+
+        {!locked && (
+          <div className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 mb-3 ${
+            backupStale ? "bg-amber-900/30 border border-amber-600/50 text-amber-200" : "bg-slate-900/60 text-slate-400"
+          }`}>
+            {backupStale && <AlertTriangle size={14} className="mt-0.5 shrink-0" />}
+            {lastExportAt ? (
+              <span>
+                Dernière sauvegarde le {new Date(lastExportAt).toLocaleDateString('fr-FR')}
+                {backupStale && ` (il y a ${daysSinceExport} jours) — pensez à en refaire une avant le prochain cours.`}
+              </span>
+            ) : (
+              <span>Aucune sauvegarde effectuée pour l'instant — pensez à exporter avant le prochain cours.</span>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onExportData}

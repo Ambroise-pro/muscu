@@ -18,6 +18,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [showGroupsPopup, setShowGroupsPopup] = useState(false);
   const [showSafetyPopup, setShowSafetyPopup] = useState(false);
+  const [lastExportAt, setLastExportAt] = useState(null);
   const [safetyAccepted, setSafetyAccepted] = useState(() => {
     try {
       return localStorage.getItem('muscu_safety_ack') === '1';
@@ -35,6 +36,9 @@ export default function App() {
 
       const seancesStored = localStorage.getItem('muscu_seances');
       if (seancesStored) setSeances(JSON.parse(seancesStored));
+
+      const lastExport = localStorage.getItem('muscu_last_export');
+      if (lastExport) setLastExportAt(lastExport);
     } catch (e) {
       console.error("Erreur lecture données", e);
     }
@@ -213,6 +217,10 @@ export default function App() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+
+    const now = new Date().toISOString();
+    setLastExportAt(now);
+    localStorage.setItem('muscu_last_export', now);
     showToast("Sauvegarde exportée.");
   };
 
@@ -306,6 +314,7 @@ export default function App() {
             onCreateSeance={createSeance}
             onExportData={handleExportData}
             onImportData={handleImportData}
+            lastExportAt={lastExportAt}
             safetyAccepted={safetyAccepted}
           />
         )}
