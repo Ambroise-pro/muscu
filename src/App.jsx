@@ -84,6 +84,7 @@ export default function App() {
   const [showGroupsPopup, setShowGroupsPopup] = useState(false);
   const [showSafetyPopup, setShowSafetyPopup] = useState(false);
   const fileInputRef = useRef(null);
+  const newProfileFileInputRef = useRef(null);
 
   useEffect(() => {
     if (activeProfileId && !safetyAccepted) setShowSafetyPopup(true);
@@ -319,6 +320,7 @@ export default function App() {
     const payload = {
       version: 2,
       exportedAt: new Date().toISOString(),
+      profileName: activeProfile?.name || '',
       savedRMs,
       seances
     };
@@ -326,8 +328,9 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const dateTag = new Date().toISOString().slice(0, 10);
+    const nameTag = activeProfile?.name ? `-${activeProfile.name.replace(/[^a-zA-Z0-9]+/g, '')}` : '';
     link.href = url;
-    link.download = `muscu-backup-${dateTag}.json`;
+    link.download = `muscu-backup${nameTag}-${dateTag}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -376,6 +379,41 @@ export default function App() {
 
   const handleImportData = () => {
     if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  // Import "tablette oubliée" : recrée un profil complet à partir d'un
+  // fichier exporté, sans devoir d'abord créer manuellement un profil vide.
+  const handleImportAsNewProfileFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const incomingSavedRMs = parsed.savedRMs || parsed.payload?.savedRMs || {};
+        const incomingSeances = parsed.seances || parsed.payload?.seances || [];
+        const importedName = (parsed.profileName || parsed.payload?.profileName || '').trim() || 'Profil importé';
+
+        const newProfile = { id: Date.now(), name: importedName, createdAt: new Date().toISOString() };
+        persistProfiles([...profiles, newProfile]);
+
+        localStorage.setItem(profileKey('rms', newProfile.id), JSON.stringify(incomingSavedRMs));
+        localStorage.setItem(profileKey('seances', newProfile.id), JSON.stringify(incomingSeances));
+
+        selectProfile(newProfile.id);
+        showToast(`Profil "${importedName}" importé.`);
+      } catch (err) {
+        console.error("Import invalide", err);
+        showToast("Fichier invalide.");
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const triggerImportAsNewProfile = () => {
+    if (newProfileFileInputRef.current) newProfileFileInputRef.current.click();
   };
 
   const handleSafetyAccept = () => {
@@ -442,6 +480,7 @@ export default function App() {
             onCreate={createProfile}
             onRename={renameProfile}
             onDelete={deleteProfile}
+            onImportProfile={triggerImportAsNewProfile}
           />
         )}
 
@@ -600,6 +639,13 @@ export default function App() {
           type="file"
           accept="application/json"
           onChange={handleImportFile}
+          className="hidden"
+        />
+        <input
+          ref={newProfileFileInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleImportAsNewProfileFile}
           className="hidden"
         />
       </div>

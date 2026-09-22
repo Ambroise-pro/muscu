@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Edit2, Plus, Trash2, User } from 'lucide-react';
+import { Edit2, Plus, Trash2, Upload, User } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 
-export const ProfileSelect = ({ profiles = [], onSelect, onCreate, onRename, onDelete }) => {
+export const ProfileSelect = ({ profiles = [], onSelect, onCreate, onRename, onDelete, onImportProfile }) => {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [renamingId, setRenamingId] = useState(null);
@@ -119,6 +119,17 @@ export const ProfileSelect = ({ profiles = [], onSelect, onCreate, onRename, onD
         >
           <Plus size={18} /> Nouveau profil
         </button>
+      )}
+
+      {onImportProfile && (
+        <div className="text-center pt-2">
+          <button
+            onClick={onImportProfile}
+            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-accent text-sm font-semibold"
+          >
+            <Upload size={14} /> Tablette oubliée ? Importer mon profil
+          </button>
+        </div>
       )}
 
       {pendingDeleteId !== null && (
