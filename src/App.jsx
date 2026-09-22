@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Dumbbell, PersonStanding, Plus, Shield } from 'lucide-react';
+import { Dumbbell, PersonStanding, Plus, Shield, User } from 'lucide-react';
 import { SAFETY_TITLE, SAFETY_SECTIONS, SAFETY_SECTION_ICONS, SAFETY_SUBSECTION_ICONS } from './constants/safety';
+import { ProfileSelect } from './components/views/ProfileSelect';
 import { MainMenu } from './components/views/MainMenu';
 import { SessionHub } from './components/views/SessionHub';
 import { RMCalculator } from './components/views/RMCalculator';
@@ -9,59 +10,169 @@ import { ActiveSessionPlayer } from './components/views/ActiveSessionPlayer';
 import { SessionHistory } from './components/views/SessionHistory';
 
 const DEFAULT_WORKOUT_SETTINGS = { goal: 'volume', restTime: 90 };
+const PROFILE_DATA_SUFFIXES = ['rms', 'seances', 'last_export', 'safety_ack'];
 
 export default function App() {
-  const [view, setView] = useState('menu');
-  const [savedRMs, setSavedRMs] = useState({});
-  const [seances, setSeances] = useState([]);
-  const [activeSeanceId, setActiveSeanceId] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [showGroupsPopup, setShowGroupsPopup] = useState(false);
-  const [showSafetyPopup, setShowSafetyPopup] = useState(false);
-  const [lastExportAt, setLastExportAt] = useState(null);
-  const [safetyAccepted, setSafetyAccepted] = useState(() => {
+  const [profiles, setProfiles] = useState(() => {
     try {
-      return localStorage.getItem('muscu_safety_ack') === '1';
+      const stored = localStorage.getItem('muscu_profiles');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [activeProfileId, setActiveProfileId] = useState(() => {
+    try {
+      const stored = localStorage.getItem('muscu_active_profile');
+      if (!stored) return null;
+      const id = Number(stored);
+      const stillExists = (() => {
+        try {
+          const list = JSON.parse(localStorage.getItem('muscu_profiles') || '[]');
+          return list.some((p) => p.id === id);
+        } catch (e) {
+          return false;
+        }
+      })();
+      return stillExists ? id : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const profileKey = (name, id = activeProfileId) => `muscu_${name}_${id}`;
+
+  const [view, setView] = useState(() => (activeProfileId ? 'menu' : 'profile_select'));
+  const [savedRMs, setSavedRMs] = useState(() => {
+    if (!activeProfileId) return {};
+    try {
+      const stored = localStorage.getItem(profileKey('rms'));
+      return stored ? JSON.parse(stored) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+  const [seances, setSeances] = useState(() => {
+    if (!activeProfileId) return [];
+    try {
+      const stored = localStorage.getItem(profileKey('seances'));
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [lastExportAt, setLastExportAt] = useState(() => {
+    if (!activeProfileId) return null;
+    try {
+      return localStorage.getItem(profileKey('last_export'));
+    } catch (e) {
+      return null;
+    }
+  });
+  const [safetyAccepted, setSafetyAccepted] = useState(() => {
+    if (!activeProfileId) return false;
+    try {
+      return localStorage.getItem(profileKey('safety_ack')) === '1';
     } catch (e) {
       return false;
     }
   });
+
+  const [activeSeanceId, setActiveSeanceId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [showGroupsPopup, setShowGroupsPopup] = useState(false);
+  const [showSafetyPopup, setShowSafetyPopup] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Chargement sécurisé
   useEffect(() => {
-    try {
-      const rms = localStorage.getItem('muscu_rms');
-      if (rms) setSavedRMs(JSON.parse(rms));
-
-      const seancesStored = localStorage.getItem('muscu_seances');
-      if (seancesStored) setSeances(JSON.parse(seancesStored));
-
-      const lastExport = localStorage.getItem('muscu_last_export');
-      if (lastExport) setLastExportAt(lastExport);
-    } catch (e) {
-      console.error("Erreur lecture données", e);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!safetyAccepted) setShowSafetyPopup(true);
-  }, [safetyAccepted]);
+    if (activeProfileId && !safetyAccepted) setShowSafetyPopup(true);
+  }, [activeProfileId, safetyAccepted]);
 
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
+  // --- Profils ---
+
+  const persistProfiles = (next) => {
+    setProfiles(next);
+    localStorage.setItem('muscu_profiles', JSON.stringify(next));
+  };
+
+  const loadProfileData = (id) => {
+    try {
+      const rms = localStorage.getItem(profileKey('rms', id));
+      setSavedRMs(rms ? JSON.parse(rms) : {});
+      const seancesStored = localStorage.getItem(profileKey('seances', id));
+      setSeances(seancesStored ? JSON.parse(seancesStored) : []);
+      setLastExportAt(localStorage.getItem(profileKey('last_export', id)));
+      setSafetyAccepted(localStorage.getItem(profileKey('safety_ack', id)) === '1');
+    } catch (e) {
+      console.error("Erreur lecture profil", e);
+    }
+    setActiveSeanceId(null);
+  };
+
+  const selectProfile = (id) => {
+    setActiveProfileId(id);
+    localStorage.setItem('muscu_active_profile', String(id));
+    loadProfileData(id);
+    setView('menu');
+  };
+
+  const createProfile = (name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const newProfile = { id: Date.now(), name: trimmed, createdAt: new Date().toISOString() };
+    persistProfiles([...profiles, newProfile]);
+    selectProfile(newProfile.id);
+  };
+
+  const renameProfile = (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    persistProfiles(profiles.map((p) => (p.id === id ? { ...p, name: trimmed } : p)));
+  };
+
+  const clearActiveProfileState = () => {
+    setActiveProfileId(null);
+    localStorage.removeItem('muscu_active_profile');
+    setSavedRMs({});
+    setSeances([]);
+    setLastExportAt(null);
+    setSafetyAccepted(false);
+    setActiveSeanceId(null);
+  };
+
+  const deleteProfile = (id) => {
+    persistProfiles(profiles.filter((p) => p.id !== id));
+    PROFILE_DATA_SUFFIXES.forEach((suffix) => {
+      localStorage.removeItem(profileKey(suffix, id));
+    });
+    if (activeProfileId === id) {
+      clearActiveProfileState();
+      setView('profile_select');
+    }
+  };
+
+  const switchProfile = () => {
+    clearActiveProfileState();
+    setView('profile_select');
+  };
+
+  // --- Séances ---
+
   const persistSeances = (next) => {
     setSeances(next);
-    localStorage.setItem('muscu_seances', JSON.stringify(next));
+    localStorage.setItem(profileKey('seances'), JSON.stringify(next));
   };
 
   const updateSeance = (id, updaterFn) => {
     setSeances((prev) => {
       const next = prev.map((s) => (s.id === id ? updaterFn(s) : s));
-      localStorage.setItem('muscu_seances', JSON.stringify(next));
+      localStorage.setItem(profileKey('seances'), JSON.stringify(next));
       return next;
     });
   };
@@ -139,10 +250,12 @@ export default function App() {
     });
   };
 
+  // --- 1RM ---
+
   const saveRM = (exercise, weight, meta) => {
     const newRMs = { ...savedRMs, [exercise]: parseFloat(weight) };
     setSavedRMs(newRMs);
-    localStorage.setItem('muscu_rms', JSON.stringify(newRMs));
+    localStorage.setItem(profileKey('rms'), JSON.stringify(newRMs));
 
     if (meta && activeSeanceId) {
       const entry = {
@@ -164,7 +277,7 @@ export default function App() {
     const next = { ...savedRMs };
     delete next[key];
     setSavedRMs(next);
-    localStorage.setItem('muscu_rms', JSON.stringify(next));
+    localStorage.setItem(profileKey('rms'), JSON.stringify(next));
   };
 
   const deleteRMCalc = (calcId) => {
@@ -200,6 +313,8 @@ export default function App() {
     }));
   };
 
+  // --- Export / Import ---
+
   const handleExportData = () => {
     const payload = {
       version: 2,
@@ -220,7 +335,7 @@ export default function App() {
 
     const now = new Date().toISOString();
     setLastExportAt(now);
-    localStorage.setItem('muscu_last_export', now);
+    localStorage.setItem(profileKey('last_export'), now);
     showToast("Sauvegarde exportée.");
   };
 
@@ -247,7 +362,7 @@ export default function App() {
 
         setSavedRMs(mergedRMs);
         persistSeances(mergedSeances);
-        localStorage.setItem('muscu_rms', JSON.stringify(mergedRMs));
+        localStorage.setItem(profileKey('rms'), JSON.stringify(mergedRMs));
         showToast("Sauvegarde importée (ajoutée).");
       } catch (err) {
         console.error("Import invalide", err);
@@ -265,17 +380,19 @@ export default function App() {
 
   const handleSafetyAccept = () => {
     setSafetyAccepted(true);
-    localStorage.setItem('muscu_safety_ack', '1');
+    localStorage.setItem(profileKey('safety_ack'), '1');
     setShowSafetyPopup(false);
     showToast("Règles de sécurité validées.");
   };
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) || null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-accent/30">
       <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto min-h-screen flex flex-col relative">
         <header className="sticky top-0 z-30 flex items-center justify-between gap-2 px-4 py-3 bg-slate-950/90 backdrop-blur border-b border-slate-800/80">
           <button
-            onClick={() => setView('menu')}
+            onClick={() => activeProfileId && setView('menu')}
             className="flex items-center gap-2 text-left"
             aria-label="Retour au menu principal"
           >
@@ -284,28 +401,50 @@ export default function App() {
             </span>
             <span className="font-black text-white tracking-tight">MuscuTracker</span>
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSafetyPopup(true)}
-              className="bg-amber-700/20 hover:bg-amber-700/30 border border-amber-600/50 w-9 h-9 rounded-full text-amber-300 flex items-center justify-center shrink-0"
-              aria-label="Voir l'apparté sécurité"
-            >
-              <Shield size={16} />
-            </button>
-            <button
-              onClick={() => setShowGroupsPopup(true)}
-              disabled={!safetyAccepted}
-              className={`bg-slate-800 border border-slate-700 w-9 h-9 rounded-full text-accent flex items-center justify-center shrink-0 ${
-                safetyAccepted ? "hover:bg-slate-700" : "opacity-40 cursor-not-allowed"
-              }`}
-              aria-label="Voir les groupes musculaires"
-            >
-              <PersonStanding size={16} />
-            </button>
-          </div>
+          {activeProfileId && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={switchProfile}
+                className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-full pl-1.5 pr-3 h-9 text-slate-200 text-xs font-bold shrink-0"
+                aria-label="Changer de profil"
+              >
+                <span className="bg-accent/20 text-accent w-6 h-6 rounded-full flex items-center justify-center">
+                  <User size={12} />
+                </span>
+                {activeProfile?.name}
+              </button>
+              <button
+                onClick={() => setShowSafetyPopup(true)}
+                className="bg-amber-700/20 hover:bg-amber-700/30 border border-amber-600/50 w-9 h-9 rounded-full text-amber-300 flex items-center justify-center shrink-0"
+                aria-label="Voir l'apparté sécurité"
+              >
+                <Shield size={16} />
+              </button>
+              <button
+                onClick={() => setShowGroupsPopup(true)}
+                disabled={!safetyAccepted}
+                className={`bg-slate-800 border border-slate-700 w-9 h-9 rounded-full text-accent flex items-center justify-center shrink-0 ${
+                  safetyAccepted ? "hover:bg-slate-700" : "opacity-40 cursor-not-allowed"
+                }`}
+                aria-label="Voir les groupes musculaires"
+              >
+                <PersonStanding size={16} />
+              </button>
+            </div>
+          )}
         </header>
 
         <div className="p-4 flex flex-col flex-1">
+        {view === 'profile_select' && (
+          <ProfileSelect
+            profiles={profiles}
+            onSelect={selectProfile}
+            onCreate={createProfile}
+            onRename={renameProfile}
+            onDelete={deleteProfile}
+          />
+        )}
+
         {view === 'menu' && (
           <MainMenu
             savedRMs={savedRMs}
