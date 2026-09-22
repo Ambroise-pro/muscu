@@ -85,6 +85,7 @@ export default function App() {
   const [showSafetyPopup, setShowSafetyPopup] = useState(false);
   const fileInputRef = useRef(null);
   const newProfileFileInputRef = useRef(null);
+  const seanceFileInputRef = useRef(null);
 
   useEffect(() => {
     if (activeProfileId && !safetyAccepted) setShowSafetyPopup(true);
@@ -209,6 +210,61 @@ export default function App() {
         deleteRM(calc.exercise);
       }
     });
+  };
+
+  // Export/import d'une seule séance (ex: séance faite sur une tablette
+  // empruntée, à ramener ensuite sur sa propre tablette).
+  const handleExportSeance = (seance) => {
+    if (!seance) return;
+    const payload = {
+      type: 'seance',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      profileName: activeProfile?.name || '',
+      seance
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateTag = new Date(seance.createdAt).toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `muscu-seance-${dateTag}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast("Séance exportée.");
+  };
+
+  const handleImportSeanceFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const incoming = parsed.seance || parsed.payload?.seance;
+        if (!incoming) throw new Error("Fichier sans séance.");
+
+        const importedSeance = {
+          ...incoming,
+          id: Date.now(),
+          rmCalcs: (incoming.rmCalcs || []).map((c, idx) => ({ ...c, id: Date.now() + idx + 1 }))
+        };
+        persistSeances([importedSeance, ...seances]);
+        showToast("Séance importée.");
+      } catch (err) {
+        console.error("Import invalide", err);
+        showToast("Fichier invalide.");
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImportSeance = () => {
+    if (seanceFileInputRef.current) seanceFileInputRef.current.click();
   };
 
   const activeSeance = seances.find((s) => s.id === activeSeanceId) || null;
@@ -498,7 +554,12 @@ export default function App() {
         )}
 
         {view === 'session_hub' && (
-          <SessionHub setView={setView} activeSeance={activeSeance} showToast={showToast} />
+          <SessionHub
+            setView={setView}
+            activeSeance={activeSeance}
+            showToast={showToast}
+            onExportSeance={handleExportSeance}
+          />
         )}
 
         {view === 'calculator' && (
@@ -530,6 +591,7 @@ export default function App() {
             onOpenSeance={openSeance}
             deleteSeance={deleteSeance}
             setView={setView}
+            onImportSeance={handleImportSeance}
           />
         )}
 
@@ -646,6 +708,13 @@ export default function App() {
           type="file"
           accept="application/json"
           onChange={handleImportAsNewProfileFile}
+          className="hidden"
+        />
+        <input
+          ref={seanceFileInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleImportSeanceFile}
           className="hidden"
         />
       </div>

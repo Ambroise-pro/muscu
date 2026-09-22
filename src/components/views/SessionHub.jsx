@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbbell } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbbell, Download } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { formatTime } from '../../utils/format';
 import { calculateBrzycki } from '../../utils/calculations';
@@ -17,7 +17,7 @@ const HubAction = ({ icon, title, desc, onClick, tint }) => (
   </button>
 );
 
-export const SessionHub = ({ setView, activeSeance, showToast }) => {
+export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance }) => {
   const rmCalcs = activeSeance?.rmCalcs || [];
   const workout = activeSeance?.workout;
   const items = workout?.items || [];
@@ -55,12 +55,20 @@ export const SessionHub = ({ setView, activeSeance, showToast }) => {
             <h3 className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
               <CheckCircle size={16} className="text-emerald-400" /> Bilan de la séance
             </h3>
-            <button
-              onClick={handleCopyToCarnet}
-              className="flex items-center gap-1.5 border border-slate-600 text-slate-300 hover:bg-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold"
-            >
-              <ClipboardCopy size={14} /> Copier vers le Carnet
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => onExportSeance?.(activeSeance)}
+                className="flex items-center gap-1.5 border border-slate-600 text-slate-300 hover:bg-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold"
+              >
+                <Download size={14} /> Exporter cette séance
+              </button>
+              <button
+                onClick={handleCopyToCarnet}
+                className="flex items-center gap-1.5 border border-slate-600 text-slate-300 hover:bg-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold"
+              >
+                <ClipboardCopy size={14} /> Copier vers le Carnet
+              </button>
+            </div>
           </div>
 
           {rmCalcs.length > 0 && (

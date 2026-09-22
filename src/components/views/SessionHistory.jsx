@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Calculator, Calendar, Dumbbell, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calculator, Calendar, Dumbbell, Trash2, Upload } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SESSION_GOALS } from '../../constants/exercises';
 
-export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setView }) => {
+export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setView, onImportSeance }) => {
   const ordered = [...seances].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
@@ -15,11 +15,21 @@ export const SessionHistory = ({ seances = [], onOpenSeance, deleteSeance, setVi
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
-      <div className="flex items-center gap-2">
-        <button onClick={() => setView('menu')} className="text-slate-400 hover:text-white">
-          <ArrowLeft size={24} />
-        </button>
-        <h2 className="text-2xl font-bold text-white">Historique Séances</h2>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <button onClick={() => setView('menu')} className="text-slate-400 hover:text-white">
+            <ArrowLeft size={24} />
+          </button>
+          <h2 className="text-2xl font-bold text-white">Historique Séances</h2>
+        </div>
+        {onImportSeance && (
+          <button
+            onClick={onImportSeance}
+            className="flex items-center gap-1.5 border border-slate-600 text-slate-300 hover:bg-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold"
+          >
+            <Upload size={14} /> Importer une séance
+          </button>
+        )}
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
