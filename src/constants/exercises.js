@@ -56,6 +56,8 @@ export const GOAL_RULES = {
     minSpeed: 20, maxSpeed: 45,
     speed: "20-45 sec",
     recovery: "30 sec à 1 min",
+    tempo: "Modéré / Modéré",
+    tempoDesc: "Montée et descente à vitesse régulière et contrôlée",
     advice: "Tonification : 4-6 séries, 15-25 reps, 40-60% intensité. Vitesse 20-45 sec, récup 30 sec à 1 min."
   },
   volume: {
@@ -66,6 +68,8 @@ export const GOAL_RULES = {
     minSpeed: 10, maxSpeed: 30,
     speed: "10-30 sec",
     recovery: "2 min",
+    tempo: "Lent / Lent",
+    tempoDesc: "Montée et descente lentes pour maximiser le temps sous tension",
     advice: "Volume : 5-7 séries, 8-15 reps, 60-80% intensité. Vitesse 10-30 sec, récup 2 min."
   },
   puissance: {
@@ -76,6 +80,8 @@ export const GOAL_RULES = {
     minSpeed: 6, maxSpeed: 10,
     speed: "6-10 sec",
     recovery: "3 à 5 min",
+    tempo: "Explosif / Lent",
+    tempoDesc: "Poussée explosive, descente lente et contrôlée",
     advice: "Puissance : 3-5 séries, 4-8 reps, 80-90% intensité. Vitesse 6-10 sec, récup 3 à 5 min."
   }
 };

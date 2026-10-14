@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { ExerciseGuideModal } from '../ui/ExerciseGuideModal';
 import { MuscleImageModal } from '../ui/MuscleImageModal';
-import { GOAL_RULES, TECH_GUIDE_ENABLED } from '../../constants/exercises';
+import { GOAL_RULES, SESSION_GOALS, TECH_GUIDE_ENABLED } from '../../constants/exercises';
 import { PEER_EVAL_CRITERIA, createPeerEvalState, isPeerEvalComplete, computePeerEvalScore } from '../../constants/peerEval';
 import { formatTime, getMuscleImage, getExerciseGuide } from '../../utils/format';
 import { getSetPrescription, evaluateWorkTime } from '../../utils/calculations';
@@ -459,9 +459,15 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
             )}
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-6 drop-shadow-xl">
+          <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-2 drop-shadow-xl">
             {currentExercise.exercise}
           </h2>
+          {GOAL_RULES[sessionSettings?.goal]?.tempo && (
+            <div className="inline-flex items-center gap-1.5 bg-slate-900/70 border border-slate-700/50 rounded-full px-3 py-1 mb-4 text-xs text-amber-200 font-semibold backdrop-blur-sm">
+              <span className="text-slate-400 text-[10px] uppercase tracking-wide">Tempo</span>
+              {GOAL_RULES[sessionSettings.goal].tempo}
+            </div>
+          )}
           {TECH_GUIDE_ENABLED && (
             <button
               onClick={() => setShowGuidePopup(true)}

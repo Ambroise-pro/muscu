@@ -275,6 +275,11 @@ export const SessionBuilder = ({
                   <div className="text-[10px] text-slate-500 uppercase">Récupération</div>
                   <div className="text-amber-200 font-bold">{currentRule.recovery}</div>
                 </div>
+                <div className="bg-slate-900/70 border border-slate-700/60 rounded-lg p-2 text-center col-span-2 sm:col-span-3">
+                  <div className="text-[10px] text-slate-500 uppercase">Tempo (montée / descente)</div>
+                  <div className="text-amber-200 font-bold">{currentRule.tempo}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">{currentRule.tempoDesc}</div>
+                </div>
               </div>
             </div>
           </div>
