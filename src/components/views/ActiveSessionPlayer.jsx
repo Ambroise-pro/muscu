@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { ExerciseGuideModal } from '../ui/ExerciseGuideModal';
 import { MuscleImageModal } from '../ui/MuscleImageModal';
 import { GOAL_RULES, TECH_GUIDE_ENABLED } from '../../constants/exercises';
@@ -33,6 +34,7 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
   const [selectedRPE, setSelectedRPE] = useState(null);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [performanceLog, setPerformanceLog] = useState({}); // Stockage des perfs { exoIndex: [ {set:1, work:20, rest:60, rpe:8} ] }
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
 
   const hasSavedRef = useRef(false);
   const intervalRef = useRef(null);
@@ -390,7 +392,7 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
   return (
     <div className="space-y-4 h-full flex flex-col animate-fade-in">
       <div className="flex items-center justify-between">
-        <button onClick={() => { if(window.confirm("Quitter la séance ?")) setView('session_builder'); }} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm">
+        <button onClick={() => setShowQuitConfirm(true)} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm">
           <ArrowLeft size={16} /> Quitter
         </button>
         <button
@@ -690,6 +692,16 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
 
       {showMuscleImage && (
         <MuscleImageModal muscle={currentExercise.muscle} onClose={() => setShowMuscleImage(false)} />
+      )}
+
+      {showQuitConfirm && (
+        <ConfirmDialog
+          title="Quitter la séance ?"
+          message="As-tu bien terminé ta séance d'aujourd'hui ? En quittant maintenant, ta progression ne sera pas sauvegardée."
+          confirmLabel="Quitter quand même"
+          onConfirm={() => { setShowQuitConfirm(false); setView('session_builder'); }}
+          onCancel={() => setShowQuitConfirm(false)}
+        />
       )}
     </div>
   );
