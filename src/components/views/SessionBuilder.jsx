@@ -111,6 +111,8 @@ export const SessionBuilder = ({
       baseWeight: finalWeight
     });
 
+    const machineSettings = history?.find(h => h.exercise === name && h.machineSettings)?.machineSettings || null;
+
     const newItem = {
       id: editingId || Date.now(),
       muscle: useSavedRM ? getSavedExerciseMuscle(name) : selectedMuscle,
@@ -121,6 +123,7 @@ export const SessionBuilder = ({
       intensity: useSavedRM ? intensity : null,
       restTime: parsedRest,
       workPattern,
+      machineSettings,
       seriesPlan: seriesPlan.map((setRow, idx) => {
         const custom = seriesDraft[idx] || {};
         const repsValue = custom.reps === "" || custom.reps === null || custom.reps === undefined
