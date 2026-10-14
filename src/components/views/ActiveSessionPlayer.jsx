@@ -463,9 +463,15 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
             {currentExercise.exercise}
           </h2>
           {GOAL_RULES[sessionSettings?.goal]?.tempo && (
-            <div className="inline-flex items-center gap-1.5 bg-slate-900/70 border border-slate-700/50 rounded-full px-3 py-1 mb-4 text-xs text-amber-200 font-semibold backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1.5 bg-slate-900/70 border border-slate-700/50 rounded-full px-3 py-1 mb-2 text-xs text-amber-200 font-semibold backdrop-blur-sm">
               <span className="text-slate-400 text-[10px] uppercase tracking-wide">Tempo</span>
               {GOAL_RULES[sessionSettings.goal].tempo}
+            </div>
+          )}
+          {currentExercise.machineSettings && (
+            <div className="bg-amber-900/20 border border-amber-500/40 rounded-lg px-3 py-2 mb-4 text-xs text-amber-100">
+              <div className="text-[10px] text-amber-400 uppercase font-bold tracking-wide mb-0.5">Réglages machine</div>
+              {currentExercise.machineSettings}
             </div>
           )}
           {TECH_GUIDE_ENABLED && (
