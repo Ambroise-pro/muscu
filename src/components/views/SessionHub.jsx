@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbbell, Download } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { formatTime } from '../../utils/format';
 import { calculateBrzycki } from '../../utils/calculations';
 import { exportBilanToCarnet } from '../../utils/carnetExport';
@@ -18,6 +20,7 @@ const HubAction = ({ icon, title, desc, onClick, tint }) => (
 );
 
 export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance }) => {
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const rmCalcs = activeSeance?.rmCalcs || [];
   const workout = activeSeance?.workout;
   const items = workout?.items || [];
@@ -37,7 +40,7 @@ export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance })
   return (
     <div className="space-y-5 animate-fade-in pt-2">
       <div className="flex items-center gap-2">
-        <button onClick={() => setView('menu')} className="text-slate-400 hover:text-white">
+        <button onClick={() => setShowQuitConfirm(true)} className="text-slate-400 hover:text-white">
           <ArrowLeft size={24} />
         </button>
         <h2 className="text-2xl font-bold text-white">Nouvelle séance</h2>
@@ -184,6 +187,15 @@ export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance })
           tint={{ bg: "bg-emerald-500/15", text: "text-emerald-400" }}
         />
       </div>
+      {showQuitConfirm && (
+        <ConfirmDialog
+          title="Quitter la séance ?"
+          message="As-tu bien terminé ta séance d'aujourd'hui ? En quittant maintenant, tu reviendras au menu principal."
+          confirmLabel="Quitter quand même"
+          onConfirm={() => { setShowQuitConfirm(false); setView('menu'); }}
+          onCancel={() => setShowQuitConfirm(false)}
+        />
+      )}
     </div>
   );
 };
