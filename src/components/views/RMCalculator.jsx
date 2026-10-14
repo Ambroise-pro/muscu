@@ -14,6 +14,7 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
   const [reps, setReps] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState(MUSCLE_GROUPS[0]);
   const [machineName, setMachineName] = useState('');
+  const [machineSettings, setMachineSettings] = useState('');
   const [result, setResult] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
@@ -33,8 +34,13 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
         muscle: selectedMuscle,
         weightInput: weight,
         repsInput: reps,
-        isUnreliable
+        isUnreliable,
+        machineSettings
       });
+      setWeight('');
+      setReps('');
+      setMachineName('');
+      setMachineSettings('');
     }
   };
 
@@ -138,6 +144,17 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
             />
           </div>
 
+          <div className="flex flex-col gap-1">
+            <label className="text-slate-400 text-sm font-medium ml-1">Réglages de la machine</label>
+            <textarea
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none text-sm resize-none"
+              rows={2}
+              value={machineSettings}
+              onChange={(e) => setMachineSettings(e.target.value)}
+              placeholder="Ex : siège à 3, barre en prise large, angle 45°…"
+            />
+          </div>
+
           <Button onClick={handleSave} disabled={!machineName || result === 0} variant={isUnreliable || isHeavyLoad ? "warning" : "primary"}>
             {isUnreliable || isHeavyLoad ? "Sauvegarder (Avec Note)" : "Sauvegarder"}
           </Button>
@@ -164,6 +181,9 @@ export const RMCalculator = ({ savedRMs, saveRM, deleteRM, history, deleteHistor
                 <div className="text-xs text-slate-500">
                   {new Date(item.date).toLocaleDateString()} • {item.weightInput}kg x {item.repsInput}
                 </div>
+                {item.machineSettings && (
+                  <div className="text-xs text-slate-400 italic mt-0.5">{item.machineSettings}</div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-black text-blue-400 text-lg">{item.rmResult}</span>
