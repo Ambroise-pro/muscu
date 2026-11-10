@@ -8,6 +8,7 @@ import { RMCalculator } from './components/views/RMCalculator';
 import { SessionBuilder } from './components/views/SessionBuilder';
 import { ActiveSessionPlayer } from './components/views/ActiveSessionPlayer';
 import { SessionHistory } from './components/views/SessionHistory';
+import { SessionBilan } from './components/views/SessionBilan';
 
 const DEFAULT_WORKOUT_SETTINGS = { goal: 'volume', restTime: 90 };
 const PROFILE_DATA_SUFFIXES = ['rms', 'seances', 'last_export', 'safety_ack'];
@@ -370,6 +371,13 @@ export default function App() {
     }));
   };
 
+  const onBilanComplete = (bilan) => {
+    if (activeSeanceId) {
+      updateSeance(activeSeanceId, (s) => ({ ...s, bilan }));
+    }
+    setView('session_hub');
+  };
+
   // --- Export / Import ---
 
   const handleExportData = () => {
@@ -582,6 +590,13 @@ export default function App() {
             sessionSettings={sessionSettings}
             setView={setView}
             onSessionComplete={onSessionComplete}
+          />
+        )}
+
+        {view === 'session_bilan' && (
+          <SessionBilan
+            onSave={onBilanComplete}
+            onSkip={() => setView('session_hub')}
           />
         )}
 

@@ -373,7 +373,7 @@ export const ActiveSessionPlayer = ({ sessionItems = [], sessionSettings, setVie
             <div className="text-3xl font-black text-emerald-200">{finalPeerScore}%</div>
           </div>
         )}
-        <Button onClick={() => setView('menu')}>Retour au Menu</Button>
+        <Button onClick={() => setView('session_bilan')}>Faire mon bilan</Button>
       </div>
     );
   }
