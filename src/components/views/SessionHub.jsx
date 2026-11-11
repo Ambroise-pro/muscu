@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbbell, Download } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle, ClipboardCopy, Dumbbell, Download, MessageSquare } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { formatTime } from '../../utils/format';
@@ -24,7 +24,11 @@ export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance })
   const rmCalcs = activeSeance?.rmCalcs || [];
   const workout = activeSeance?.workout;
   const items = workout?.items || [];
+  const bilan = activeSeance?.bilan || null;
   const hasBilan = rmCalcs.length > 0 || items.length > 0;
+
+  const RESSENTIS = ['', '😩', '😕', '😐', '😊', '🤩'];
+  const FATIGUES = ['', 'Aucune', 'Légère', 'Modérée', 'Forte', 'Épuisé(e)'];
 
   const handleCopyToCarnet = () => {
     const { copied, opened } = exportBilanToCarnet(activeSeance);
@@ -164,6 +168,51 @@ export const SessionHub = ({ setView, activeSeance, showToast, onExportSeance })
               </div>
             </Card>
           )}
+        </div>
+      )}
+
+      {bilan && (
+        <div className="space-y-2">
+          <h3 className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+            <MessageSquare size={16} className="text-blue-400" /> Bilan de séance
+          </h3>
+          <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-3 text-sm">
+            {bilan.ressenti && (
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{RESSENTIS[bilan.ressenti]}</span>
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase">Ressenti</div>
+                  <div className="text-slate-200 font-semibold">
+                    {['', 'Très difficile', 'Difficile', 'Correct', 'Bien', 'Excellent'][bilan.ressenti]}
+                  </div>
+                </div>
+                {bilan.fatigue && (
+                  <div className="ml-auto text-right">
+                    <div className="text-[10px] text-slate-500 uppercase">Fatigue</div>
+                    <div className="text-slate-200 font-semibold">{FATIGUES[bilan.fatigue]}</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {bilan.positif && (
+              <div>
+                <div className="text-[10px] text-emerald-400 uppercase font-bold mb-0.5">Ce qui s'est bien passé</div>
+                <div className="text-slate-300">{bilan.positif}</div>
+              </div>
+            )}
+            {bilan.ameliorer && (
+              <div>
+                <div className="text-[10px] text-amber-400 uppercase font-bold mb-0.5">À améliorer</div>
+                <div className="text-slate-300">{bilan.ameliorer}</div>
+              </div>
+            )}
+            {bilan.objectif && (
+              <div>
+                <div className="text-[10px] text-blue-400 uppercase font-bold mb-0.5">Objectif prochaine séance</div>
+                <div className="text-slate-300">{bilan.objectif}</div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
